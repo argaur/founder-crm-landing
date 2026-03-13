@@ -576,6 +576,9 @@
       bot: 'Telegram Bot', settings: 'Settings'
     };
 
+    // Pages that are sub-views of a parent nav item
+    const PAGE_PARENT_NAV = { 'contact-detail': 'contacts' };
+
     function showPage(name) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.querySelectorAll('[id^="nav-"]').forEach(n => {
@@ -583,9 +586,9 @@
         n.classList.add('text-brand-subtext');
       });
       document.getElementById('page-' + name).classList.add('active');
-      const nav = document.getElementById('nav-' + name);
-      nav.classList.add('active');
-      nav.classList.remove('text-brand-subtext');
+      const navName = PAGE_PARENT_NAV[name] || name;
+      const nav = document.getElementById('nav-' + navName);
+      if (nav) { nav.classList.add('active'); nav.classList.remove('text-brand-subtext'); }
       document.getElementById('page-title').textContent = PAGE_TITLES[name];
     }
 
