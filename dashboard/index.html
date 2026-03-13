@@ -60,10 +60,10 @@
 
   <!-- ── CONFIG ── Fill these in before deploying ────────────── -->
   <script>
+    // Read PAT — needs data.records:read + data.records:write + schema.bases:read scopes for edits to work
     const AIRTABLE_PAT     = "pat5cm9zXV4mzFaSl.9b5776d4984d2d4c4c46336b3d6cc0e99833eca082d654263744bf3221497b0c";
     const AIRTABLE_BASE_ID = "apprSKvjMgFVxRzRw";
-    const USER_ID          = "78a1a709-0431-4256-b83a-a1d70677c6ec";
-    // To see demo seed data, change USER_ID above to "demo-gaurav-001"
+    const USER_ID          = "demo-gaurav-001"; // Change to your user_id from /register for live data
 
     const BOT_LINK         = "https://t.me/RethinkCRMbot";
     const REFRESH_MS       = 5 * 60 * 1000;
@@ -433,6 +433,26 @@
     </main>
   </div>
 
+  <!-- ── NOTE MODAL ────────────────────────────────────────────────── -->
+  <div id="note-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm hidden">
+    <div class="bg-brand-card border border-brand-border rounded-2xl p-5 w-full max-w-md shadow-2xl">
+      <div class="flex items-center justify-between mb-1">
+        <h3 class="font-semibold text-brand-text">Add Note</h3>
+        <button onclick="closeNoteModal()" class="text-brand-muted hover:text-brand-text p-1">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="text-xs text-brand-muted mb-3" id="note-contact-label"></div>
+      <textarea id="note-text" rows="3" placeholder="What happened? What's the next step?"
+        class="w-full bg-brand-dark border border-brand-border rounded-lg px-3 py-2.5 text-sm text-brand-text placeholder-brand-muted focus:outline-none focus:border-brand-accent resize-none transition-colors duration-150"></textarea>
+      <div class="flex gap-2 mt-3">
+        <button onclick="closeNoteModal()" class="flex-1 text-sm text-brand-subtext border border-brand-border hover:border-blue-500/30 px-4 py-2 rounded-lg transition-colors duration-150">Cancel</button>
+        <button onclick="saveNote()" id="save-note-btn" class="flex-1 text-sm bg-brand-accent hover:bg-brand-accentHover text-white px-4 py-2 rounded-lg transition-colors duration-150 disabled:opacity-60">Save Note</button>
+      </div>
+      <div id="note-error" class="hidden mt-2 text-xs text-red-400"></div>
+    </div>
+  </div>
+
   <!-- ── SCRIPTS ─────────────────────────────────────────────────── -->
   <script>
     // ── State ──────────────────────────────────────────────────────
@@ -689,6 +709,9 @@
       const h  = calcHeat(rec);
       const lu = timeAgo(f.last_updated);
       const summary = f.next_action ? esc(f.next_action) : '';
+      const stageOpts = ALL_STAGES.map(s =>
+        `<option value="${s}"${s === f.stage ? ' selected' : ''}>${s}</option>`
+      ).join('');
       return `<div class="deal-card bg-brand-card border border-brand-border rounded-xl p-3">
         <div class="flex items-start justify-between gap-1 mb-1.5">
           <span class="text-sm font-medium text-brand-text leading-snug">${esc(f.name || '—')}</span>
@@ -696,9 +719,21 @@
         </div>
         <div class="text-xs text-brand-muted mb-2">${esc(f.company || '')}${f.role ? ' · ' + esc(f.role) : ''}</div>
         ${summary ? `<div class="text-xs text-brand-subtext bg-brand-dark rounded-lg px-2 py-1.5 mb-2 summary-text" onclick="this.classList.toggle('expanded')">${summary}</div>` : ''}
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between mb-2">
           <span class="text-xs text-brand-muted">${lu}</span>
           <span class="text-xs text-brand-muted">${f.interaction_count || 0} notes</span>
+        </div>
+        <div class="flex items-center gap-1.5 pt-2 border-t border-brand-border">
+          <select data-id="${rec.id}" data-original="${esc(f.stage || '')}"
+            onchange="changeStage(this)"
+            class="flex-1 text-xs bg-brand-dark border border-brand-border rounded px-1.5 py-1 text-brand-subtext focus:outline-none focus:border-brand-accent transition-colors cursor-pointer">
+            ${stageOpts}
+          </select>
+          <button data-id="${rec.id}" data-name="${esc(f.name || '')}"
+            onclick="openNoteModal(this)"
+            class="text-xs text-brand-muted hover:text-brand-text border border-brand-border hover:border-blue-500/40 px-2 py-1 rounded transition-colors duration-150 flex-shrink-0">
+            + Note
+          </button>
         </div>
       </div>`;
     }
@@ -834,6 +869,98 @@
     function esc(str) {
       return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
+
+    // ── Write: Stage change ───────────────────────────────────────
+    async function changeStage(selectEl) {
+      const recordId     = selectEl.dataset.id;
+      const newStage     = selectEl.value;
+      const originalStage = selectEl.dataset.original;
+      selectEl.disabled  = true;
+      try {
+        const res = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/contacts/${recordId}`, {
+          method: 'PATCH',
+          headers: { 'Authorization': `Bearer ${AIRTABLE_PAT}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fields: { stage: newStage, last_updated: new Date().toISOString() } })
+        });
+        if (!res.ok) throw new Error(`${res.status} — ensure PAT has data.records:write scope`);
+        await loadData();
+      } catch (err) {
+        alert('Stage update failed: ' + err.message);
+        selectEl.value    = originalStage;
+        selectEl.disabled = false;
+      }
+    }
+
+    // ── Write: Notes ──────────────────────────────────────────────
+    let activeNoteRecId = null;
+
+    function openNoteModal(btn) {
+      activeNoteRecId = btn.dataset.id;
+      document.getElementById('note-contact-label').textContent = btn.dataset.name;
+      document.getElementById('note-text').value = '';
+      document.getElementById('note-error').classList.add('hidden');
+      document.getElementById('save-note-btn').disabled = false;
+      document.getElementById('save-note-btn').textContent = 'Save Note';
+      document.getElementById('note-modal').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+      setTimeout(() => document.getElementById('note-text').focus(), 50);
+    }
+
+    function closeNoteModal() {
+      document.getElementById('note-modal').classList.add('hidden');
+      document.body.style.overflow = '';
+      activeNoteRecId = null;
+    }
+
+    async function saveNote() {
+      const text = document.getElementById('note-text').value.trim();
+      if (!text) return;
+      const btn = document.getElementById('save-note-btn');
+      const errEl = document.getElementById('note-error');
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+      errEl.classList.add('hidden');
+      try {
+        // Create interaction record
+        const intRes = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/interactions`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${AIRTABLE_PAT}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fields: {
+            contact_id: activeNoteRecId,
+            type: 'manual_note',
+            raw_content: text,
+            ai_summary: text,
+            telegram_message_id: 0,
+            logged_on: new Date().toISOString()
+          }})
+        });
+        if (!intRes.ok) throw new Error(`Interactions: ${intRes.status}`);
+
+        // Increment interaction_count and update last_updated on contact
+        const contact = allContacts.find(r => r.id === activeNoteRecId);
+        const currentCount = contact?.fields?.interaction_count || 0;
+        await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/contacts/${activeNoteRecId}`, {
+          method: 'PATCH',
+          headers: { 'Authorization': `Bearer ${AIRTABLE_PAT}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fields: { interaction_count: currentCount + 1, last_updated: new Date().toISOString() } })
+        });
+
+        closeNoteModal();
+        await loadData();
+      } catch (err) {
+        errEl.textContent = 'Save failed: ' + err.message;
+        errEl.classList.remove('hidden');
+        btn.disabled = false;
+        btn.textContent = 'Save Note';
+      }
+    }
+
+    document.getElementById('note-modal').addEventListener('click', function(e) {
+      if (e.target === this) closeNoteModal();
+    });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && activeNoteRecId) closeNoteModal();
+    });
 
     // ── Init ──────────────────────────────────────────────────────
     if (AIRTABLE_PAT === 'YOUR_PAT_HERE' || AIRTABLE_BASE_ID === 'YOUR_BASE_ID_HERE' || USER_ID === 'YOUR_USER_ID_HERE') {
