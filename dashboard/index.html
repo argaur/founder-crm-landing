@@ -3,419 +3,849 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Founder CRM — Pipeline</title>
+  <title>Rethink CRM — Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+          colors: {
+            brand: {
+              dark:        '#0d1117',
+              card:        '#161b22',
+              border:      '#21262d',
+              accent:      '#3b82f6',
+              accentHover: '#2563eb',
+              muted:       '#64748b',
+              text:        '#e2e8f0',
+              subtext:     '#94a3b8',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <style>
-    /* Base dark theme */
-    body { background: #0d1117; color: #e6edf3; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-
-    /* Scrollbar styling */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #161b22; }
-    ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
-
-    /* Skeleton shimmer animation */
+    body { background: #0d1117; color: #e6edf3; font-family: 'Inter', system-ui, sans-serif; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: #0d1117; }
+    ::-webkit-scrollbar-thumb { background: #21262d; border-radius: 3px; }
     @keyframes shimmer {
-      0% { background-position: -400px 0; }
-      100% { background-position: 400px 0; }
+      0%   { background-position: -600px 0; }
+      100% { background-position: 600px 0; }
     }
     .skeleton {
-      background: linear-gradient(90deg, #161b22 25%, #21262d 50%, #161b22 75%);
-      background-size: 400px 100%;
-      animation: shimmer 1.4s infinite;
+      background: linear-gradient(90deg, #161b22 25%, #1e2535 50%, #161b22 75%);
+      background-size: 600px 100%;
+      animation: shimmer 1.5s infinite;
       border-radius: 6px;
     }
-
-    /* Card summary expand/collapse */
-    .summary-text { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .summary-text.expanded { display: block; -webkit-line-clamp: unset; }
-
-    /* Column scroll */
-    .kanban-col { min-width: 260px; max-width: 300px; }
-
-    /* Heat badge base */
-    .badge-hot  { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
-    .badge-warm { background: rgba(234,179,8,0.15);  color: #fbbf24; border: 1px solid rgba(234,179,8,0.3); }
-    .badge-cold { background: rgba(107,114,128,0.15); color: #9ca3af; border: 1px solid rgba(107,114,128,0.3); }
-
-    /* Stage column header accent */
-    .col-lead        { border-top: 2px solid #3b82f6; }
-    .col-evaluating  { border-top: 2px solid #8b5cf6; }
-    .col-proposal    { border-top: 2px solid #f59e0b; }
-    .col-negotiating { border-top: 2px solid #10b981; }
-    .col-won         { border-top: 2px solid #22c55e; }
-    .col-lost        { border-top: 2px solid #ef4444; }
+    .nav-item { transition: background 0.15s, color 0.15s; }
+    .nav-item:hover { background: rgba(255,255,255,0.05); }
+    .nav-item.active { background: rgba(59,130,246,0.12); color: #60a5fa; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .summary-text { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; cursor: pointer; }
+    .summary-text.expanded { -webkit-line-clamp: unset; }
+    .deal-card { transition: border-color 0.15s, transform 0.15s; }
+    .deal-card:hover { border-color: rgba(59,130,246,0.4); transform: translateY(-1px); }
   </style>
 </head>
-<body class="min-h-screen">
 
-  <!-- ── CONFIG (fill these in before opening) ──────────────────────────── -->
+<body class="min-h-screen flex flex-col">
+
+  <!-- ── CONFIG ── Fill these in before deploying ────────────── -->
   <script>
-    const AIRTABLE_PAT    = "pat5cm9zXV4mzFaSl.9b5776d4984d2d4c4c46336b3d6cc0e99833eca082d654263744bf3221497b0c";       // Read-only PAT scoped to data.records:read
-    const AIRTABLE_BASE_ID = "apprSKvjMgFVxRzRw";  // Starts with "app..."
-    const USER_ID         = "78a1a709-0431-4256-b83a-a1d70677c6ec";   // The user_id from /register
-    const REFRESH_INTERVAL_MS = 5 * 60 * 1000;    // Auto-refresh every 5 minutes
+    const AIRTABLE_PAT     = "pat5cm9zXV4mzFaSl.9b5776d4984d2d4c4c46336b3d6cc0e99833eca082d654263744bf3221497b0c";
+    const AIRTABLE_BASE_ID = "apprSKvjMgFVxRzRw";
+    const USER_ID          = "78a1a709-0431-4256-b83a-a1d70677c6ec";
+    // To see demo seed data, change USER_ID above to "demo-gaurav-001"
+
+    const BOT_LINK         = "https://t.me/RethinkCRMbot";
+    const REFRESH_MS       = 5 * 60 * 1000;
+
+    const STAGE_THRESHOLDS = { "Lead": 7, "Evaluating": 5, "Proposal Sent": 3, "Negotiating": 2 };
+    const ACTIVE_STAGES    = ["Lead", "Evaluating", "Proposal Sent", "Negotiating"];
+    const ALL_STAGES       = ["Lead", "Evaluating", "Proposal Sent", "Negotiating", "Won", "Lost"];
   </script>
-  <!-- ─────────────────────────────────────────────────────────────────── -->
 
-  <!-- ── HEADER ─────────────────────────────────────────────────────────── -->
-  <header class="sticky top-0 z-10 border-b border-gray-800" style="background: rgba(13,17,23,0.95); backdrop-filter: blur(8px);">
-    <div class="max-w-screen-2xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
-      <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm" style="background: #3b82f6;">F</div>
-        <div>
-          <span class="font-semibold text-white">Founder CRM</span>
-          <span class="text-gray-500 text-sm ml-2">Pipeline</span>
-        </div>
+  <!-- ── LAYOUT WRAPPER ──────────────────────────────────────── -->
+  <div class="flex flex-1 min-h-screen">
+
+    <!-- ── SIDEBAR ─────────────────────────────────────────────── -->
+    <aside class="w-56 flex-shrink-0 border-r border-brand-border bg-brand-dark flex flex-col fixed top-0 left-0 h-full z-30">
+      <!-- Logo -->
+      <div class="px-5 py-5 border-b border-brand-border">
+        <div class="font-bold text-base text-brand-text tracking-tight">Rethink CRM</div>
+        <div class="text-xs text-brand-muted mt-0.5">Pipeline Dashboard</div>
       </div>
-      <div class="flex items-center gap-3 text-sm">
-        <span class="text-gray-500">Last updated: <span id="last-updated">—</span></span>
-        <button
-          id="refresh-btn"
-          onclick="loadDashboard()"
-          class="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
-          style="background: #21262d; border: 1px solid #30363d; color: #e6edf3;"
-          onmouseover="this.style.background='#30363d'" onmouseout="this.style.background='#21262d'"
-        >
-          <svg id="refresh-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
-            <path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
-            <path d="M8 16H3v5"/>
+
+      <!-- Nav -->
+      <nav class="flex-1 px-3 py-4 space-y-1">
+        <button onclick="showPage('home')" id="nav-home" class="nav-item active w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-left">
+          <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
           </svg>
-          Refresh
+          Dashboard
         </button>
+        <button onclick="showPage('pipeline')" id="nav-pipeline" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-left text-brand-subtext">
+          <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/>
+          </svg>
+          Pipeline
+        </button>
+        <button onclick="showPage('contacts')" id="nav-contacts" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-left text-brand-subtext">
+          <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+          Contacts
+        </button>
+        <button onclick="showPage('followups')" id="nav-followups" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-left text-brand-subtext">
+          <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+          </svg>
+          Follow-ups
+          <span id="followup-badge" class="hidden ml-auto text-xs bg-orange-500/20 text-orange-400 border border-orange-500/30 px-1.5 py-0.5 rounded-full font-semibold"></span>
+        </button>
+        <button onclick="showPage('settings')" id="nav-settings" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-left text-brand-subtext">
+          <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/>
+          </svg>
+          Settings
+        </button>
+      </nav>
+
+      <!-- Bot CTA at bottom -->
+      <div class="px-3 py-4 border-t border-brand-border">
+        <a href="javascript:void(0)" onclick="window.open(BOT_LINK,'_blank')"
+          class="flex items-center gap-2 w-full bg-brand-accent hover:bg-brand-accentHover text-white text-sm font-medium px-3 py-2.5 rounded-lg transition-colors duration-150">
+          <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.246 13.68l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.902.879z"/>
+          </svg>
+          Open Telegram Bot
+        </a>
       </div>
-    </div>
-  </header>
+    </aside>
 
-  <!-- ── MAIN CONTENT ───────────────────────────────────────────────────── -->
-  <main class="max-w-screen-2xl mx-auto px-4 py-6">
+    <!-- ── MAIN CONTENT ─────────────────────────────────────────── -->
+    <main class="flex-1 ml-56 flex flex-col min-h-screen">
 
-    <!-- Error banner -->
-    <div id="error-banner" class="hidden mb-4 px-4 py-3 rounded-lg text-red-300 text-sm" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);">
-      Could not load data. Check console for details.
-    </div>
-
-    <!-- Stats bar -->
-    <div id="stats-bar" class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-      <!-- Skeleton placeholders shown on load -->
-      <div class="skeleton h-20 rounded-xl"></div>
-      <div class="skeleton h-20 rounded-xl"></div>
-      <div class="skeleton h-20 rounded-xl"></div>
-      <div class="skeleton h-20 rounded-xl"></div>
-    </div>
-
-    <!-- Kanban board (horizontal scroll on mobile) -->
-    <div id="kanban-wrapper" class="overflow-x-auto pb-4">
-      <div id="kanban-board" class="flex gap-4" style="min-width: max-content;">
-        <!-- Skeleton columns -->
-        <div class="kanban-col">
-          <div class="skeleton h-8 rounded mb-3"></div>
-          <div class="skeleton h-32 rounded-xl mb-2"></div>
-          <div class="skeleton h-32 rounded-xl mb-2"></div>
+      <!-- Top header bar -->
+      <header class="border-b border-brand-border bg-brand-dark/90 backdrop-blur-md sticky top-0 z-20 px-6 py-3 flex items-center justify-between">
+        <div id="page-title" class="font-semibold text-brand-text">Dashboard</div>
+        <div class="flex items-center gap-3">
+          <span id="last-refreshed" class="text-xs text-brand-muted"></span>
+          <button onclick="loadData(true)" class="text-xs text-brand-subtext hover:text-brand-text border border-brand-border hover:border-blue-500/50 px-3 py-1.5 rounded-lg transition-colors duration-150 flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+            Refresh
+          </button>
         </div>
-        <div class="kanban-col">
-          <div class="skeleton h-8 rounded mb-3"></div>
-          <div class="skeleton h-32 rounded-xl mb-2"></div>
+      </header>
+
+      <!-- ── PAGE: DASHBOARD HOME ──────────────────────────────── -->
+      <div id="page-home" class="page active flex-1 p-6">
+
+        <!-- Error banner -->
+        <div id="error-banner" class="hidden mb-6 text-sm text-red-400 bg-red-900/20 border border-red-800/30 rounded-xl px-4 py-3"></div>
+
+        <!-- Loading skeletons -->
+        <div id="home-loading">
+          <div class="grid grid-cols-4 gap-4 mb-6">
+            <div class="skeleton h-20 rounded-xl"></div>
+            <div class="skeleton h-20 rounded-xl"></div>
+            <div class="skeleton h-20 rounded-xl"></div>
+            <div class="skeleton h-20 rounded-xl"></div>
+          </div>
+          <div class="grid grid-cols-2 gap-6">
+            <div class="skeleton h-64 rounded-xl"></div>
+            <div class="skeleton h-64 rounded-xl"></div>
+          </div>
         </div>
-        <div class="kanban-col">
-          <div class="skeleton h-8 rounded mb-3"></div>
-          <div class="skeleton h-32 rounded-xl mb-2"></div>
-          <div class="skeleton h-32 rounded-xl mb-2"></div>
+
+        <!-- Empty state (shown when no deals) -->
+        <div id="home-empty" class="hidden">
+          <!-- Welcome -->
+          <div class="bg-brand-card border border-brand-border rounded-2xl p-8 mb-6 text-center max-w-2xl mx-auto">
+            <div class="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mx-auto mb-4">
+              <svg class="w-7 h-7 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <h2 class="text-xl font-bold text-brand-text mb-2">Welcome to Rethink CRM</h2>
+            <p class="text-brand-subtext text-sm leading-relaxed mb-6">Your CRM starts working the moment you send your first conversation. No setup needed — just forward a WhatsApp chat to the bot.</p>
+            <a href="javascript:void(0)" onclick="window.open(BOT_LINK,'_blank')"
+              class="inline-flex items-center gap-2 bg-brand-accent hover:bg-brand-accentHover text-white font-semibold px-6 py-3 rounded-xl transition-colors duration-150">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.246 13.68l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.902.879z"/>
+              </svg>
+              Open Telegram Bot
+            </a>
+          </div>
+
+          <!-- Bot instructions -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 max-w-2xl mx-auto">
+            <div class="bg-brand-card border border-brand-border rounded-xl p-4 text-center">
+              <div class="text-2xl mb-2">💬</div>
+              <div class="text-sm font-medium text-brand-text mb-1">Step 1</div>
+              <div class="text-xs text-brand-subtext">Open the Telegram bot and send <code class="text-blue-300">/start</code></div>
+            </div>
+            <div class="bg-brand-card border border-brand-border rounded-xl p-4 text-center">
+              <div class="text-2xl mb-2">📤</div>
+              <div class="text-sm font-medium text-brand-text mb-1">Step 2</div>
+              <div class="text-xs text-brand-subtext">Forward any WhatsApp conversation or send a voice note</div>
+            </div>
+            <div class="bg-brand-card border border-brand-border rounded-xl p-4 text-center">
+              <div class="text-2xl mb-2">✨</div>
+              <div class="text-sm font-medium text-brand-text mb-1">Step 3</div>
+              <div class="text-xs text-brand-subtext">AI extracts the deal and this dashboard updates automatically</div>
+            </div>
+          </div>
+
+          <!-- Demo pipeline -->
+          <div class="bg-brand-card border border-brand-border rounded-2xl p-5 max-w-2xl mx-auto">
+            <div class="flex items-center gap-2 mb-4">
+              <span class="text-xs font-semibold text-brand-muted uppercase tracking-widest">Example Pipeline</span>
+              <span class="text-xs bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-2 py-0.5 rounded-full">Demo data — yours will appear here</span>
+            </div>
+            <div class="space-y-2">
+              <div class="flex items-center justify-between bg-brand-dark border border-brand-border rounded-lg px-3 py-2.5">
+                <div>
+                  <span class="text-sm font-medium text-brand-text">TechCorp Solutions</span>
+                  <span class="ml-2 text-xs text-brand-muted">Arjun Mehta · CTO</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded">Negotiating</span>
+                  <span class="text-xs bg-red-500/20 text-red-400 px-2 py-0.5 rounded">Hot</span>
+                </div>
+              </div>
+              <div class="flex items-center justify-between bg-brand-dark border border-brand-border rounded-lg px-3 py-2.5">
+                <div>
+                  <span class="text-sm font-medium text-brand-text">Razorpay</span>
+                  <span class="ml-2 text-xs text-brand-muted">Priya Sharma · VP Partnerships</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded">Proposal Sent</span>
+                  <span class="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded">Warm</span>
+                </div>
+              </div>
+              <div class="flex items-center justify-between bg-brand-dark border border-brand-border rounded-lg px-3 py-2.5">
+                <div>
+                  <span class="text-sm font-medium text-brand-text">Groww</span>
+                  <span class="ml-2 text-xs text-brand-muted">Ananya Kumar · Head of Ops</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded">Evaluating</span>
+                  <span class="text-xs bg-red-500/20 text-red-400 px-2 py-0.5 rounded">Hot</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="kanban-col">
-          <div class="skeleton h-8 rounded mb-3"></div>
-          <div class="skeleton h-32 rounded-xl mb-2"></div>
+
+        <!-- Dashboard with data -->
+        <div id="home-data" class="hidden">
+          <!-- Stats -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+            <div class="bg-brand-card border border-brand-border rounded-xl p-4">
+              <div class="text-xs text-brand-muted mb-1">Active Deals</div>
+              <div id="stat-active" class="text-2xl font-bold text-brand-text">—</div>
+            </div>
+            <div class="bg-brand-card border border-brand-border rounded-xl p-4">
+              <div class="text-xs text-brand-muted mb-1">Won This Month</div>
+              <div id="stat-won" class="text-2xl font-bold text-emerald-400">—</div>
+            </div>
+            <div class="bg-brand-card border border-brand-border rounded-xl p-4">
+              <div class="text-xs text-brand-muted mb-1">Need Follow-up</div>
+              <div id="stat-followup" class="text-2xl font-bold text-orange-400">—</div>
+            </div>
+            <div class="bg-brand-card border border-brand-border rounded-xl p-4">
+              <div class="text-xs text-brand-muted mb-1">Avg Heat Score</div>
+              <div id="stat-heat" class="text-2xl font-bold text-blue-400">—</div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Follow-up queue -->
+            <div class="bg-brand-card border border-brand-border rounded-2xl p-5">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="font-semibold text-brand-text">Follow-up Queue</h3>
+                <button onclick="showPage('followups')" class="text-xs text-brand-accent hover:underline">View all</button>
+              </div>
+              <div id="home-followup-list" class="space-y-2"></div>
+              <div id="home-followup-empty" class="hidden py-6 text-center text-brand-muted text-sm">
+                No overdue follow-ups. You're all caught up!
+              </div>
+            </div>
+
+            <!-- Hot deals -->
+            <div class="bg-brand-card border border-brand-border rounded-2xl p-5">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="font-semibold text-brand-text">Hottest Deals</h3>
+                <button onclick="showPage('pipeline')" class="text-xs text-brand-accent hover:underline">View pipeline</button>
+              </div>
+              <div id="home-hot-list" class="space-y-2"></div>
+              <div id="home-hot-empty" class="hidden py-6 text-center text-brand-muted text-sm">
+                No active deals yet.
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Won / Lost (collapsed section) -->
-    <div id="closed-section" class="hidden mt-2">
-      <button
-        id="closed-toggle"
-        onclick="toggleClosed()"
-        class="flex items-center gap-2 text-sm text-gray-400 mb-3 hover:text-gray-200 transition-colors"
-      >
-        <svg id="closed-chevron" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transition: transform 0.2s;">
-          <polyline points="9 18 15 12 9 6"></polyline>
-        </svg>
-        <span id="closed-toggle-label">Show Won &amp; Lost (0)</span>
-      </button>
-      <div id="closed-board" class="hidden overflow-x-auto pb-4">
-        <div id="closed-columns" class="flex gap-4" style="min-width: max-content;"></div>
+      <!-- ── PAGE: PIPELINE ────────────────────────────────────── -->
+      <div id="page-pipeline" class="page flex-1 p-6">
+        <div id="pipeline-loading">
+          <div class="grid grid-cols-4 gap-4">
+            <div class="skeleton h-96 rounded-xl"></div>
+            <div class="skeleton h-96 rounded-xl"></div>
+            <div class="skeleton h-96 rounded-xl"></div>
+            <div class="skeleton h-96 rounded-xl"></div>
+          </div>
+        </div>
+        <div id="pipeline-board" class="hidden">
+          <!-- Kanban columns injected here -->
+        </div>
+        <!-- Won / Lost collapsible -->
+        <div id="pipeline-closed" class="hidden mt-6">
+          <button onclick="toggleClosed()" id="closed-toggle-btn" class="flex items-center gap-2 text-sm text-brand-subtext hover:text-brand-text mb-4 transition-colors duration-150">
+            <svg id="closed-chevron" class="w-4 h-4 transform rotate-0 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+            </svg>
+            <span id="closed-toggle-label">Show Closed Deals</span>
+          </button>
+          <div id="closed-section" class="hidden grid grid-cols-2 gap-4">
+            <div id="won-column"></div>
+            <div id="lost-column"></div>
+          </div>
+        </div>
       </div>
-    </div>
 
-    <!-- Full empty state -->
-    <div id="empty-state" class="hidden flex flex-col items-center justify-center py-24 text-center">
-      <div class="w-16 h-16 rounded-full flex items-center justify-center mb-4" style="background: #21262d;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-        </svg>
+      <!-- ── PAGE: CONTACTS ────────────────────────────────────── -->
+      <div id="page-contacts" class="page flex-1 p-6">
+        <div class="mb-5 flex items-center gap-3">
+          <input type="text" id="contact-search" oninput="filterContacts()" placeholder="Search contacts..."
+            class="bg-brand-card border border-brand-border rounded-lg px-4 py-2.5 text-sm text-brand-text placeholder-brand-muted focus:outline-none focus:border-brand-accent transition-colors duration-150 w-64" />
+          <select id="contact-stage-filter" onchange="filterContacts()"
+            class="bg-brand-card border border-brand-border rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:border-brand-accent transition-colors duration-150">
+            <option value="">All Stages</option>
+            <option>Lead</option>
+            <option>Evaluating</option>
+            <option>Proposal Sent</option>
+            <option>Negotiating</option>
+            <option>Won</option>
+            <option>Lost</option>
+          </select>
+        </div>
+        <div id="contacts-loading" class="space-y-2">
+          <div class="skeleton h-14 rounded-xl"></div>
+          <div class="skeleton h-14 rounded-xl"></div>
+          <div class="skeleton h-14 rounded-xl"></div>
+        </div>
+        <div id="contacts-list" class="hidden space-y-2"></div>
+        <div id="contacts-empty" class="hidden py-16 text-center">
+          <div class="text-brand-muted text-sm">No contacts found.</div>
+        </div>
       </div>
-      <h3 class="text-lg font-semibold text-white mb-1">No deals yet</h3>
-      <p class="text-gray-400 text-sm max-w-xs">Forward a WhatsApp conversation to your Telegram bot to capture your first deal automatically.</p>
-    </div>
 
-  </main>
+      <!-- ── PAGE: FOLLOW-UPS ──────────────────────────────────── -->
+      <div id="page-followups" class="page flex-1 p-6">
+        <p class="text-brand-subtext text-sm mb-5">Deals that have exceeded their stage inactivity threshold and need attention.</p>
+        <div id="followups-loading" class="space-y-2">
+          <div class="skeleton h-16 rounded-xl"></div>
+          <div class="skeleton h-16 rounded-xl"></div>
+        </div>
+        <div id="followups-list" class="hidden space-y-3"></div>
+        <div id="followups-empty" class="hidden py-16 text-center">
+          <div class="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto mb-3">
+            <svg class="w-6 h-6 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+          <div class="text-brand-text font-medium mb-1">All caught up!</div>
+          <div class="text-brand-muted text-sm">No deals need follow-up right now.</div>
+        </div>
+      </div>
 
-  <!-- ── FOOTER ──────────────────────────────────────────────────────────── -->
-  <footer class="border-t border-gray-800 mt-8 py-4 text-center text-xs text-gray-600">
-    Powered by <a href="https://argaur.github.io/founder-crm-landing/" target="_blank" class="text-blue-500 hover:text-blue-400">Founder CRM</a>
-  </footer>
+      <!-- ── PAGE: SETTINGS ────────────────────────────────────── -->
+      <div id="page-settings" class="page flex-1 p-6 max-w-lg">
+        <div class="space-y-4">
+          <div class="bg-brand-card border border-brand-border rounded-2xl p-5">
+            <h3 class="font-semibold text-brand-text mb-4">Bot</h3>
+            <div class="space-y-3">
+              <div>
+                <div class="text-xs text-brand-muted mb-1.5">Telegram Bot</div>
+                <a id="settings-bot-link" href="#" target="_blank" rel="noopener noreferrer"
+                  class="inline-flex items-center gap-2 text-sm text-brand-accent hover:underline font-mono"></a>
+              </div>
+              <div>
+                <div class="text-xs text-brand-muted mb-1.5">Your User ID</div>
+                <code id="settings-user-id" class="text-xs bg-brand-dark border border-brand-border rounded px-3 py-2 text-brand-subtext block"></code>
+              </div>
+            </div>
+          </div>
+          <div class="bg-brand-card border border-brand-border rounded-2xl p-5">
+            <h3 class="font-semibold text-brand-text mb-4">Dashboard Config</h3>
+            <div class="space-y-3 text-sm text-brand-subtext">
+              <div class="flex justify-between">
+                <span class="text-brand-muted">Airtable Base</span>
+                <code class="text-xs font-mono text-brand-subtext" id="settings-base-id"></code>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-brand-muted">Auto-refresh</span>
+                <span>Every 5 minutes</span>
+              </div>
+            </div>
+          </div>
+          <div class="bg-brand-card border border-brand-border rounded-2xl p-5">
+            <h3 class="font-semibold text-brand-text mb-3">Bot Commands</h3>
+            <div class="space-y-2 text-sm">
+              <div class="flex items-center gap-3">
+                <code class="text-xs text-blue-300 bg-blue-500/10 px-2 py-1 rounded w-28 flex-shrink-0">/pipeline</code>
+                <span class="text-brand-subtext">View your full pipeline</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <code class="text-xs text-blue-300 bg-blue-500/10 px-2 py-1 rounded w-28 flex-shrink-0">/context [name]</code>
+                <span class="text-brand-subtext">Pre-call brief</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <code class="text-xs text-blue-300 bg-blue-500/10 px-2 py-1 rounded w-28 flex-shrink-0">/ask [question]</code>
+                <span class="text-brand-subtext">Ask about your pipeline</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <code class="text-xs text-blue-300 bg-blue-500/10 px-2 py-1 rounded w-28 flex-shrink-0">/won [name]</code>
+                <span class="text-brand-subtext">Mark deal as won</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <code class="text-xs text-blue-300 bg-blue-500/10 px-2 py-1 rounded w-28 flex-shrink-0">/addnote</code>
+                <span class="text-brand-subtext">Add a note to a deal</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-  <!-- ── JAVASCRIPT ──────────────────────────────────────────────────────── -->
+    </main>
+  </div>
+
+  <!-- ── SCRIPTS ─────────────────────────────────────────────────── -->
   <script>
-    // ── Helpers ────────────────────────────────────────────────────────────
+    // ── State ──────────────────────────────────────────────────────
+    let allContacts = [];
+    let allInteractions = {};
 
-    function heatScore(lastUpdated, interactionCount) {
-      if (!lastUpdated) return { score: 0, label: 'Cold' };
-      const days = Math.max(0, Math.floor((Date.now() - new Date(lastUpdated).getTime()) / 86400000));
-      const raw = 100 - (days * 5) + ((interactionCount || 0) * 3);
-      const score = Math.max(0, Math.min(100, raw));
+    // ── Navigation ─────────────────────────────────────────────────
+    const PAGE_TITLES = {
+      home: 'Dashboard', pipeline: 'Pipeline',
+      contacts: 'Contacts', followups: 'Follow-ups', settings: 'Settings'
+    };
+
+    function showPage(name) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('[id^="nav-"]').forEach(n => {
+        n.classList.remove('active');
+        n.classList.add('text-brand-subtext');
+      });
+      document.getElementById('page-' + name).classList.add('active');
+      const nav = document.getElementById('nav-' + name);
+      nav.classList.add('active');
+      nav.classList.remove('text-brand-subtext');
+      document.getElementById('page-title').textContent = PAGE_TITLES[name];
+    }
+
+    // ── Heat score ────────────────────────────────────────────────
+    function calcHeat(rec) {
+      const f = rec.fields || {};
+      const lu = f.last_updated;
+      const ic = f.interaction_count || 0;
+      let days = 0;
+      if (lu) {
+        const d = new Date(lu);
+        days = Math.floor((Date.now() - d.getTime()) / 86400000);
+      }
+      const score = Math.max(0, Math.min(100, 100 - days * 5 + ic * 3));
       const label = score >= 70 ? 'Hot' : score >= 40 ? 'Warm' : 'Cold';
-      return { score, label };
+      const cls   = score >= 70
+        ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+        : score >= 40
+        ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+        : 'bg-gray-500/20 text-gray-400 border border-gray-500/30';
+      return { score, label, cls };
+    }
+
+    function daysAgo(dateStr) {
+      if (!dateStr) return null;
+      return Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
     }
 
     function timeAgo(dateStr) {
-      if (!dateStr) return 'never';
-      const days = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
-      if (days === 0) return 'today';
-      if (days === 1) return 'yesterday';
-      return `${days} days ago`;
+      const d = daysAgo(dateStr);
+      if (d === null) return 'unknown';
+      if (d === 0) return 'today';
+      if (d === 1) return '1 day ago';
+      return `${d} days ago`;
     }
 
-    function heatBadge(label, score) {
-      const cls = label === 'Hot' ? 'badge-hot' : label === 'Warm' ? 'badge-warm' : 'badge-cold';
-      const dot = label === 'Hot' ? '🔥' : label === 'Warm' ? '🌡' : '❄️';
-      return `<span class="${cls} text-xs font-medium px-2 py-0.5 rounded-full">${dot} ${label} ${score}</span>`;
-    }
-
-    function escapeHtml(str) {
-      return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    }
-
-    // ── Airtable fetch ─────────────────────────────────────────────────────
-
+    // ── Airtable fetch ────────────────────────────────────────────
     async function fetchContacts() {
       const filter = encodeURIComponent(`{user_id}='${USER_ID}'`);
       const sort   = encodeURIComponent('last_updated');
-      const url    = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/contacts?filterByFormula=${filter}&sort[0][field]=${sort}&sort[0][direction]=desc`;
-
-      const res = await fetch(url, { headers: { Authorization: `Bearer ${AIRTABLE_PAT}` } });
-      if (!res.ok) throw new Error(`Airtable contacts error: ${res.status}`);
+      const url    = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/contacts?filterByFormula=${filter}&sort[0][field]=${sort}&sort[0][direction]=desc&pageSize=100`;
+      const res    = await fetch(url, { headers: { Authorization: `Bearer ${AIRTABLE_PAT}` } });
+      if (!res.ok) throw new Error(`Contacts fetch failed: ${res.status}`);
       const json = await res.json();
-      return json.records;
+      return json.records || [];
     }
 
-    // ── Stats bar ──────────────────────────────────────────────────────────
+    // ── Load & render ─────────────────────────────────────────────
+    async function loadData(forceRefresh = false) {
+      document.getElementById('error-banner').classList.add('hidden');
+      document.getElementById('home-loading').style.display = '';
+      document.getElementById('home-data').classList.add('hidden');
+      document.getElementById('home-empty').classList.add('hidden');
+      document.getElementById('pipeline-loading').style.display = '';
+      document.getElementById('pipeline-board').classList.add('hidden');
+      document.getElementById('contacts-loading').style.display = '';
+      document.getElementById('contacts-list').classList.add('hidden');
+      document.getElementById('followups-loading').style.display = '';
+      document.getElementById('followups-list').classList.add('hidden');
 
-    function renderStats(contacts) {
-      const activeStages = ['Lead', 'Evaluating', 'Proposal Sent', 'Negotiating'];
-      const now = new Date();
-      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+      try {
+        allContacts = await fetchContacts();
 
-      const active = contacts.filter(c => activeStages.includes(c.fields.stage));
-      const wonThisMonth = contacts.filter(c =>
-        c.fields.stage === 'Won' && c.fields.last_updated && c.fields.last_updated >= monthStart
-      );
-      const lostThisMonth = contacts.filter(c =>
-        c.fields.stage === 'Lost' && c.fields.last_updated && c.fields.last_updated >= monthStart
-      );
+        document.getElementById('last-refreshed').textContent =
+          'Updated ' + new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
 
-      const scores = active.map(c => heatScore(c.fields.last_updated, c.fields.interaction_count).score);
-      const avgHeat = scores.length ? Math.round(scores.reduce((a,b) => a+b, 0) / scores.length) : 0;
+        renderHome();
+        renderPipeline();
+        renderContacts();
+        renderFollowups();
+        renderSettings();
 
-      const stats = [
-        { label: 'Active Deals',     value: active.length,       color: '#3b82f6' },
-        { label: 'Won This Month',   value: wonThisMonth.length,  color: '#22c55e' },
-        { label: 'Lost This Month',  value: lostThisMonth.length, color: '#ef4444' },
-        { label: 'Avg Heat Score',   value: avgHeat,              color: '#f59e0b' },
-      ];
-
-      document.getElementById('stats-bar').innerHTML = stats.map(s => `
-        <div class="rounded-xl px-4 py-4" style="background: #161b22; border: 1px solid #21262d;">
-          <div class="text-3xl font-bold" style="color: ${s.color};">${s.value}</div>
-          <div class="text-xs text-gray-400 mt-1">${s.label}</div>
-        </div>
-      `).join('');
-    }
-
-    // ── Deal card ──────────────────────────────────────────────────────────
-
-    function dealCard(contact, idx) {
-      const f = contact.fields;
-      const { score, label } = heatScore(f.last_updated, f.interaction_count);
-      const summary = escapeHtml(f.ai_summary || f.next_action || '—');
-      const name    = escapeHtml(f.name || 'Unknown');
-      const company = escapeHtml(f.company || '');
-      const ago     = timeAgo(f.last_updated);
-
-      return `
-        <div class="rounded-xl p-4 mb-2" style="background: #161b22; border: 1px solid #21262d;">
-          <div class="flex items-start justify-between gap-2 mb-2">
-            <div>
-              <div class="font-semibold text-white text-sm">${name}</div>
-              ${company ? `<div class="text-xs text-gray-400">${company}</div>` : ''}
-            </div>
-            ${heatBadge(label, score)}
-          </div>
-          <div class="text-xs text-gray-500 mb-2">${ago}</div>
-          <div
-            class="summary-text text-xs text-gray-400 leading-relaxed cursor-pointer select-none"
-            onclick="toggleSummary(this)"
-            title="Click to expand"
-          >${summary}</div>
-        </div>
-      `;
-    }
-
-    function toggleSummary(el) {
-      el.classList.toggle('expanded');
-    }
-
-    // ── Kanban column ──────────────────────────────────────────────────────
-
-    function kanbanColumn(stage, contacts, colClass) {
-      const count = contacts.length;
-      const cards = count === 0
-        ? `<div class="text-xs text-gray-600 text-center py-8">No deals in this stage</div>`
-        : contacts.map((c, i) => dealCard(c, i)).join('');
-
-      return `
-        <div class="kanban-col flex-shrink-0 ${colClass} rounded-xl p-3" style="background: #0d1117; border: 1px solid #21262d;">
-          <div class="flex items-center justify-between mb-3">
-            <span class="text-xs font-semibold text-gray-300 uppercase tracking-wider">${escapeHtml(stage)}</span>
-            <span class="text-xs font-medium px-1.5 py-0.5 rounded" style="background: #21262d; color: #8b949e;">${count}</span>
-          </div>
-          ${cards}
-        </div>
-      `;
-    }
-
-    // ── Kanban board ───────────────────────────────────────────────────────
-
-    function renderKanban(contacts) {
-      const stages = {
-        'Lead':          { contacts: [], colClass: 'col-lead' },
-        'Evaluating':    { contacts: [], colClass: 'col-evaluating' },
-        'Proposal Sent': { contacts: [], colClass: 'col-proposal' },
-        'Negotiating':   { contacts: [], colClass: 'col-negotiating' },
-      };
-      const closed = {
-        'Won':  { contacts: [], colClass: 'col-won' },
-        'Lost': { contacts: [], colClass: 'col-lost' },
-      };
-
-      contacts.forEach(c => {
-        const stage = c.fields.stage || 'Lead';
-        if (stages[stage])  stages[stage].contacts.push(c);
-        if (closed[stage]) closed[stage].contacts.push(c);
-      });
-
-      // Active Kanban
-      const board = document.getElementById('kanban-board');
-      board.innerHTML = Object.entries(stages)
-        .map(([stage, { contacts, colClass }]) => kanbanColumn(stage, contacts, colClass))
-        .join('');
-
-      // Won / Lost (collapsed section)
-      const totalClosed = closed['Won'].contacts.length + closed['Lost'].contacts.length;
-      const closedSection = document.getElementById('closed-section');
-      const closedColumns = document.getElementById('closed-columns');
-      const closedToggleLabel = document.getElementById('closed-toggle-label');
-
-      closedSection.classList.remove('hidden');
-      closedToggleLabel.textContent = `Show Won & Lost (${totalClosed})`;
-      closedColumns.innerHTML = Object.entries(closed)
-        .map(([stage, { contacts, colClass }]) => kanbanColumn(stage, contacts, colClass))
-        .join('');
-
-      // Empty state
-      const activeTotal = Object.values(stages).reduce((s, v) => s + v.contacts.length, 0);
-      if (activeTotal === 0 && totalClosed === 0) {
-        document.getElementById('kanban-wrapper').classList.add('hidden');
-        closedSection.classList.add('hidden');
-        document.getElementById('empty-state').classList.remove('hidden');
-      } else {
-        document.getElementById('kanban-wrapper').classList.remove('hidden');
-        document.getElementById('empty-state').classList.add('hidden');
+      } catch (err) {
+        const banner = document.getElementById('error-banner');
+        banner.textContent = 'Could not load data: ' + err.message + '. Check console.';
+        banner.classList.remove('hidden');
+        console.error(err);
+        document.getElementById('home-loading').style.display = 'none';
+        document.getElementById('pipeline-loading').style.display = 'none';
+        document.getElementById('contacts-loading').style.display = 'none';
+        document.getElementById('followups-loading').style.display = 'none';
       }
     }
 
-    // ── Won/Lost toggle ────────────────────────────────────────────────────
+    // ── Render Home ───────────────────────────────────────────────
+    function renderHome() {
+      document.getElementById('home-loading').style.display = 'none';
 
-    let closedVisible = false;
-    function toggleClosed() {
-      closedVisible = !closedVisible;
-      document.getElementById('closed-board').classList.toggle('hidden', !closedVisible);
-      const chevron = document.getElementById('closed-chevron');
-      chevron.style.transform = closedVisible ? 'rotate(90deg)' : '';
-      const label = document.getElementById('closed-toggle-label');
-      const current = label.textContent;
-      label.textContent = current.replace(/^(Show|Hide)/, closedVisible ? 'Hide' : 'Show');
-    }
+      const active = allContacts.filter(r => ACTIVE_STAGES.includes(r.fields?.stage));
+      const now    = new Date();
 
-    // ── Refresh button spin ────────────────────────────────────────────────
-
-    let isLoading = false;
-    function setLoading(loading) {
-      isLoading = loading;
-      const icon = document.getElementById('refresh-icon');
-      const btn  = document.getElementById('refresh-btn');
-      if (loading) {
-        icon.style.animation = 'spin 1s linear infinite';
-        btn.disabled = true;
-        btn.style.opacity = '0.6';
-      } else {
-        icon.style.animation = '';
-        btn.disabled = false;
-        btn.style.opacity = '1';
-      }
-    }
-
-    // Add spin keyframe
-    const spinStyle = document.createElement('style');
-    spinStyle.textContent = '@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }';
-    document.head.appendChild(spinStyle);
-
-    // ── Main load ──────────────────────────────────────────────────────────
-
-    async function loadDashboard() {
-      if (isLoading) return;
-
-      // Config guard
-      if (AIRTABLE_PAT === 'YOUR_PAT_HERE' || AIRTABLE_BASE_ID === 'YOUR_BASE_ID_HERE' || USER_ID === 'YOUR_USER_ID_HERE') {
-        document.getElementById('error-banner').classList.remove('hidden');
-        document.getElementById('error-banner').textContent =
-          'Dashboard not configured. Open index.html and fill in AIRTABLE_PAT, AIRTABLE_BASE_ID, and USER_ID at the top of the script.';
-        document.getElementById('kanban-board').innerHTML = '';
-        document.getElementById('stats-bar').innerHTML = '';
+      if (allContacts.length === 0) {
+        document.getElementById('home-empty').classList.remove('hidden');
         return;
       }
 
-      setLoading(true);
-      document.getElementById('error-banner').classList.add('hidden');
+      document.getElementById('home-data').classList.remove('hidden');
 
-      try {
-        const contacts = await fetchContacts();
-        renderStats(contacts);
-        renderKanban(contacts);
-        document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
-      } catch (err) {
-        console.error('Dashboard load error:', err);
-        document.getElementById('error-banner').classList.remove('hidden');
-      } finally {
-        setLoading(false);
+      // Stats
+      const won = allContacts.filter(r => {
+        if (r.fields?.stage !== 'Won') return false;
+        const lu = r.fields?.last_updated;
+        if (!lu) return false;
+        const d = new Date(lu);
+        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      });
+
+      const stale = getStale();
+      const heats = active.map(r => calcHeat(r).score);
+      const avgHeat = heats.length ? Math.round(heats.reduce((a,b) => a+b, 0) / heats.length) : 0;
+
+      document.getElementById('stat-active').textContent  = active.length;
+      document.getElementById('stat-won').textContent     = won.length;
+      document.getElementById('stat-followup').textContent = stale.length;
+      document.getElementById('stat-heat').textContent    = avgHeat;
+
+      // Follow-up queue (top 5)
+      const fuList = document.getElementById('home-followup-list');
+      const fuEmpty = document.getElementById('home-followup-empty');
+      if (stale.length === 0) {
+        fuList.innerHTML = '';
+        fuEmpty.classList.remove('hidden');
+      } else {
+        fuEmpty.classList.add('hidden');
+        fuList.innerHTML = stale.slice(0, 5).map(r => {
+          const f   = r.fields || {};
+          const d   = daysAgo(f.last_updated);
+          const thr = STAGE_THRESHOLDS[f.stage] || 7;
+          const over = d - thr;
+          return `<div class="flex items-center justify-between bg-brand-dark border border-brand-border rounded-lg px-3 py-2.5">
+            <div>
+              <span class="text-sm font-medium text-brand-text">${esc(f.name || '—')}</span>
+              <span class="ml-1.5 text-xs text-brand-muted">${esc(f.company || '')}</span>
+            </div>
+            <div class="flex items-center gap-2 flex-shrink-0 ml-3">
+              <span class="text-xs text-brand-muted">${d}d inactive</span>
+              <span class="text-xs bg-orange-500/20 text-orange-400 border border-orange-500/30 px-1.5 py-0.5 rounded">${esc(f.stage)}</span>
+            </div>
+          </div>`;
+        }).join('');
+      }
+
+      // Hot deals (top 5 by heat score)
+      const hotList  = document.getElementById('home-hot-list');
+      const hotEmpty = document.getElementById('home-hot-empty');
+      const sorted   = [...active].sort((a,b) => calcHeat(b).score - calcHeat(a).score);
+      if (sorted.length === 0) {
+        hotList.innerHTML = '';
+        hotEmpty.classList.remove('hidden');
+      } else {
+        hotEmpty.classList.add('hidden');
+        hotList.innerHTML = sorted.slice(0, 5).map(r => {
+          const f = r.fields || {};
+          const h = calcHeat(r);
+          return `<div class="flex items-center justify-between bg-brand-dark border border-brand-border rounded-lg px-3 py-2.5">
+            <div>
+              <span class="text-sm font-medium text-brand-text">${esc(f.name || '—')}</span>
+              <span class="ml-1.5 text-xs text-brand-muted">${esc(f.company || '')}</span>
+            </div>
+            <div class="flex items-center gap-2 flex-shrink-0 ml-3">
+              <span class="text-xs ${h.cls} px-1.5 py-0.5 rounded">${h.label} · ${h.score}</span>
+              <span class="text-xs text-brand-muted">${esc(f.stage)}</span>
+            </div>
+          </div>`;
+        }).join('');
+      }
+
+      // Follow-up badge
+      const badge = document.getElementById('followup-badge');
+      if (stale.length > 0) {
+        badge.textContent = stale.length;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
       }
     }
 
-    // ── Init ───────────────────────────────────────────────────────────────
+    // ── Render Pipeline ───────────────────────────────────────────
+    function renderPipeline() {
+      document.getElementById('pipeline-loading').style.display = 'none';
+      const board = document.getElementById('pipeline-board');
+      board.classList.remove('hidden');
 
-    loadDashboard();
-    setInterval(loadDashboard, REFRESH_INTERVAL_MS);
+      const grouped = {};
+      ALL_STAGES.forEach(s => grouped[s] = []);
+      allContacts.forEach(r => {
+        const s = r.fields?.stage || 'Lead';
+        if (grouped[s]) grouped[s].push(r);
+      });
+
+      // Sort each active stage by heat score desc
+      ACTIVE_STAGES.forEach(s => {
+        grouped[s].sort((a,b) => calcHeat(b).score - calcHeat(a).score);
+      });
+
+      board.innerHTML = `<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 overflow-x-auto">
+        ${ACTIVE_STAGES.map(stage => renderColumn(stage, grouped[stage])).join('')}
+      </div>`;
+
+      // Closed section
+      const hasWon  = grouped['Won'].length > 0;
+      const hasLost = grouped['Lost'].length > 0;
+      if (hasWon || hasLost) {
+        document.getElementById('pipeline-closed').classList.remove('hidden');
+        document.getElementById('won-column').innerHTML  = renderColumn('Won', grouped['Won']);
+        document.getElementById('lost-column').innerHTML = renderColumn('Lost', grouped['Lost']);
+      }
+    }
+
+    function renderColumn(stage, contacts) {
+      const stageColors = {
+        'Lead': 'text-gray-400', 'Evaluating': 'text-purple-400',
+        'Proposal Sent': 'text-blue-400', 'Negotiating': 'text-orange-400',
+        'Won': 'text-emerald-400', 'Lost': 'text-red-400'
+      };
+      const col = stageColors[stage] || 'text-brand-muted';
+      const cards = contacts.length
+        ? contacts.map(r => renderCard(r)).join('')
+        : `<div class="text-xs text-brand-muted text-center py-4">No deals</div>`;
+
+      return `<div class="bg-brand-dark border border-brand-border rounded-xl p-3 min-h-[200px]">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs font-semibold uppercase tracking-widest ${col}">${stage}</span>
+          <span class="text-xs text-brand-muted bg-brand-card border border-brand-border px-1.5 py-0.5 rounded">${contacts.length}</span>
+        </div>
+        <div class="space-y-2">${cards}</div>
+      </div>`;
+    }
+
+    function renderCard(rec) {
+      const f  = rec.fields || {};
+      const h  = calcHeat(rec);
+      const lu = timeAgo(f.last_updated);
+      const summary = f.next_action ? esc(f.next_action) : '';
+      return `<div class="deal-card bg-brand-card border border-brand-border rounded-xl p-3">
+        <div class="flex items-start justify-between gap-1 mb-1.5">
+          <span class="text-sm font-medium text-brand-text leading-snug">${esc(f.name || '—')}</span>
+          <span class="text-xs ${h.cls} px-1.5 py-0.5 rounded flex-shrink-0 ml-1">${h.label}</span>
+        </div>
+        <div class="text-xs text-brand-muted mb-2">${esc(f.company || '')}${f.role ? ' · ' + esc(f.role) : ''}</div>
+        ${summary ? `<div class="text-xs text-brand-subtext bg-brand-dark rounded-lg px-2 py-1.5 mb-2 summary-text" onclick="this.classList.toggle('expanded')">${summary}</div>` : ''}
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-brand-muted">${lu}</span>
+          <span class="text-xs text-brand-muted">${f.interaction_count || 0} notes</span>
+        </div>
+      </div>`;
+    }
+
+    let closedOpen = false;
+    function toggleClosed() {
+      closedOpen = !closedOpen;
+      document.getElementById('closed-section').classList.toggle('hidden', !closedOpen);
+      document.getElementById('closed-toggle-label').textContent = closedOpen ? 'Hide Closed Deals' : 'Show Closed Deals';
+      document.getElementById('closed-chevron').style.transform = closedOpen ? 'rotate(90deg)' : 'rotate(0)';
+    }
+
+    // ── Render Contacts ───────────────────────────────────────────
+    function renderContacts(filtered) {
+      document.getElementById('contacts-loading').style.display = 'none';
+      const list  = document.getElementById('contacts-list');
+      const empty = document.getElementById('contacts-empty');
+      const data  = filtered !== undefined ? filtered : allContacts;
+
+      if (data.length === 0) {
+        list.classList.add('hidden');
+        empty.classList.remove('hidden');
+        return;
+      }
+      empty.classList.add('hidden');
+      list.classList.remove('hidden');
+
+      const stageColors = {
+        'Lead': 'bg-gray-500/20 text-gray-400', 'Evaluating': 'bg-purple-500/20 text-purple-400',
+        'Proposal Sent': 'bg-blue-500/20 text-blue-400', 'Negotiating': 'bg-orange-500/20 text-orange-400',
+        'Won': 'bg-emerald-500/20 text-emerald-400', 'Lost': 'bg-red-500/20 text-red-400'
+      };
+
+      list.innerHTML = data.map(r => {
+        const f  = r.fields || {};
+        const h  = calcHeat(r);
+        const sc = stageColors[f.stage] || 'bg-gray-500/20 text-gray-400';
+        return `<div class="deal-card flex items-center justify-between bg-brand-card border border-brand-border rounded-xl px-4 py-3">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-8 h-8 rounded-full bg-brand-dark border border-brand-border flex items-center justify-center text-xs font-semibold text-brand-subtext flex-shrink-0">
+              ${esc((f.name||'?').charAt(0).toUpperCase())}
+            </div>
+            <div class="min-w-0">
+              <div class="text-sm font-medium text-brand-text truncate">${esc(f.name || '—')}</div>
+              <div class="text-xs text-brand-muted">${esc(f.company || '')}${f.role ? ' · ' + esc(f.role) : ''}</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 flex-shrink-0 ml-4">
+            <span class="hidden sm:inline text-xs text-brand-muted">${timeAgo(f.last_updated)}</span>
+            <span class="text-xs ${sc} px-2 py-0.5 rounded">${esc(f.stage || '')}</span>
+            <span class="text-xs ${h.cls} px-1.5 py-0.5 rounded">${h.label}</span>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function filterContacts() {
+      const q  = (document.getElementById('contact-search').value || '').toLowerCase();
+      const st = document.getElementById('contact-stage-filter').value;
+      const filtered = allContacts.filter(r => {
+        const f = r.fields || {};
+        const matchQ  = !q || (f.name||'').toLowerCase().includes(q) || (f.company||'').toLowerCase().includes(q);
+        const matchSt = !st || f.stage === st;
+        return matchQ && matchSt;
+      });
+      renderContacts(filtered);
+    }
+
+    // ── Render Follow-ups ─────────────────────────────────────────
+    function getStale() {
+      return allContacts.filter(r => {
+        const f   = r.fields || {};
+        const thr = STAGE_THRESHOLDS[f.stage];
+        if (!thr) return false;
+        const d = daysAgo(f.last_updated);
+        return d !== null && d >= thr;
+      }).sort((a,b) => {
+        const da = daysAgo(a.fields?.last_updated) || 0;
+        const db = daysAgo(b.fields?.last_updated) || 0;
+        return db - da;
+      });
+    }
+
+    function renderFollowups() {
+      document.getElementById('followups-loading').style.display = 'none';
+      const list  = document.getElementById('followups-list');
+      const empty = document.getElementById('followups-empty');
+      const stale = getStale();
+
+      if (stale.length === 0) {
+        list.classList.add('hidden');
+        empty.classList.remove('hidden');
+        return;
+      }
+      empty.classList.add('hidden');
+      list.classList.remove('hidden');
+
+      list.innerHTML = stale.map(r => {
+        const f   = r.fields || {};
+        const d   = daysAgo(f.last_updated);
+        const thr = STAGE_THRESHOLDS[f.stage];
+        const over = d - thr;
+        const h   = calcHeat(r);
+        return `<div class="bg-brand-card border border-orange-500/20 rounded-xl px-4 py-4">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="text-sm font-semibold text-brand-text">${esc(f.name || '—')}</span>
+                <span class="text-xs text-brand-muted">@ ${esc(f.company || '')}</span>
+              </div>
+              <div class="text-xs text-brand-subtext">${esc(f.next_action || 'No next action recorded')}</div>
+            </div>
+            <div class="flex flex-col items-end gap-1.5 flex-shrink-0">
+              <span class="text-xs bg-orange-500/20 text-orange-400 border border-orange-500/30 px-2 py-0.5 rounded">${esc(f.stage)}</span>
+              <span class="text-xs text-brand-muted">${d} days inactive · ${over}d overdue</span>
+              <span class="text-xs ${h.cls} px-1.5 py-0.5 rounded">${h.label}</span>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    // ── Render Settings ───────────────────────────────────────────
+    function renderSettings() {
+      const bl = document.getElementById('settings-bot-link');
+      bl.href        = BOT_LINK;
+      bl.textContent = BOT_LINK;
+      document.getElementById('settings-user-id').textContent  = USER_ID;
+      document.getElementById('settings-base-id').textContent  = AIRTABLE_BASE_ID;
+    }
+
+    // ── Utils ─────────────────────────────────────────────────────
+    function esc(str) {
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // ── Init ──────────────────────────────────────────────────────
+    if (AIRTABLE_PAT === 'YOUR_PAT_HERE' || AIRTABLE_BASE_ID === 'YOUR_BASE_ID_HERE' || USER_ID === 'YOUR_USER_ID_HERE') {
+      const b = document.getElementById('error-banner');
+      b.textContent = 'Dashboard not configured. Fill in AIRTABLE_PAT, AIRTABLE_BASE_ID, and USER_ID at the top of the script.';
+      b.classList.remove('hidden');
+      document.getElementById('home-loading').style.display = 'none';
+    } else {
+      loadData();
+      setInterval(() => loadData(), REFRESH_MS);
+    }
   </script>
+
 </body>
 </html>
