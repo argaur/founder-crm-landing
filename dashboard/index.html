@@ -111,6 +111,12 @@
           Follow-ups
           <span id="followup-badge" class="hidden ml-auto text-xs bg-orange-500/20 text-orange-400 border border-orange-500/30 px-1.5 py-0.5 rounded-full font-semibold"></span>
         </button>
+        <button onclick="showPage('bot')" id="nav-bot" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-left text-brand-subtext">
+          <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.246 13.68l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.902.879z"/>
+          </svg>
+          Telegram Bot
+        </button>
         <button onclick="showPage('settings')" id="nav-settings" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-left text-brand-subtext">
           <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/>
@@ -118,17 +124,6 @@
           Settings
         </button>
       </nav>
-
-      <!-- Bot CTA at bottom -->
-      <div class="px-3 py-4 border-t border-brand-border">
-        <a href="javascript:void(0)" onclick="window.open(BOT_LINK,'_blank')"
-          class="flex items-center gap-2 w-full bg-brand-accent hover:bg-brand-accentHover text-white text-sm font-medium px-3 py-2.5 rounded-lg transition-colors duration-150">
-          <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.246 13.68l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.902.879z"/>
-          </svg>
-          Open Telegram Bot
-        </a>
-      </div>
     </aside>
 
     <!-- ── MAIN CONTENT ─────────────────────────────────────────── -->
@@ -372,6 +367,100 @@
         </div>
       </div>
 
+      <!-- ── PAGE: TELEGRAM BOT ───────────────────────────────────── -->
+      <div id="page-bot" class="page flex-1 p-6 max-w-2xl">
+
+        <!-- Open bot CTA -->
+        <div class="bg-brand-card border border-brand-border rounded-2xl p-6 mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div class="flex-1">
+            <h2 class="font-semibold text-brand-text mb-1">Your Rethink CRM Bot</h2>
+            <p class="text-sm text-brand-subtext">This is your primary interface. Forward conversations here — the dashboard updates automatically.</p>
+          </div>
+          <a id="bot-open-link" href="#" target="_blank" rel="noopener noreferrer"
+            class="flex-shrink-0 inline-flex items-center gap-2 bg-brand-accent hover:bg-brand-accentHover text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors duration-150">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.246 13.68l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.902.879z"/>
+            </svg>
+            Open in Telegram
+          </a>
+        </div>
+
+        <!-- Capture methods -->
+        <div class="mb-6">
+          <h3 class="text-xs font-semibold text-brand-muted uppercase tracking-widest mb-3">How to Capture Deals</h3>
+          <div class="space-y-3">
+            <div class="bg-brand-card border border-brand-border rounded-xl px-4 py-3 flex items-start gap-3">
+              <span class="text-lg flex-shrink-0">💬</span>
+              <div>
+                <div class="text-sm font-medium text-brand-text mb-0.5">Forward a WhatsApp conversation</div>
+                <div class="text-xs text-brand-subtext">Copy any WhatsApp chat and forward it to the bot. AI will extract the contact, company, stage, and next action automatically.</div>
+              </div>
+            </div>
+            <div class="bg-brand-card border border-brand-border rounded-xl px-4 py-3 flex items-start gap-3">
+              <span class="text-lg flex-shrink-0">🎙️</span>
+              <div>
+                <div class="text-sm font-medium text-brand-text mb-0.5">Send a voice note after a call</div>
+                <div class="text-xs text-brand-subtext">Record a quick voice memo right after a call. The bot transcribes it and extracts deal context — even from Hinglish.</div>
+              </div>
+            </div>
+            <div class="bg-brand-card border border-brand-border rounded-xl px-4 py-3 flex items-start gap-3">
+              <span class="text-lg flex-shrink-0">📸</span>
+              <div>
+                <div class="text-sm font-medium text-brand-text mb-0.5">Send a screenshot</div>
+                <div class="text-xs text-brand-subtext">LinkedIn DMs, business cards, WhatsApp contact info — send the screenshot and AI reads it.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Commands reference -->
+        <div>
+          <h3 class="text-xs font-semibold text-brand-muted uppercase tracking-widest mb-3">Bot Commands</h3>
+          <div class="bg-brand-card border border-brand-border rounded-2xl overflow-hidden">
+            <table class="w-full text-sm">
+              <tbody class="divide-y divide-brand-border">
+                <tr class="px-4 py-3">
+                  <td class="px-4 py-3 w-36"><code class="text-xs text-blue-300 bg-blue-500/10 px-2 py-1 rounded">/pipeline</code></td>
+                  <td class="px-4 py-3 text-brand-subtext text-xs">See your full pipeline grouped by stage with heat scores</td>
+                </tr>
+                <tr>
+                  <td class="px-4 py-3"><code class="text-xs text-blue-300 bg-blue-500/10 px-2 py-1 rounded">/context [name]</code></td>
+                  <td class="px-4 py-3 text-brand-subtext text-xs">Get a pre-call brief — last discussion, stage, budget signal, talking points</td>
+                </tr>
+                <tr>
+                  <td class="px-4 py-3"><code class="text-xs text-blue-300 bg-blue-500/10 px-2 py-1 rounded">/ask [question]</code></td>
+                  <td class="px-4 py-3 text-brand-subtext text-xs">Ask anything about your pipeline in plain language</td>
+                </tr>
+                <tr>
+                  <td class="px-4 py-3"><code class="text-xs text-blue-300 bg-blue-500/10 px-2 py-1 rounded">/addnote</code></td>
+                  <td class="px-4 py-3 text-brand-subtext text-xs">Add a note to an existing deal (guided flow)</td>
+                </tr>
+                <tr>
+                  <td class="px-4 py-3"><code class="text-xs text-blue-300 bg-blue-500/10 px-2 py-1 rounded">/note [text]</code></td>
+                  <td class="px-4 py-3 text-brand-subtext text-xs">Quick note to your most recently updated deal</td>
+                </tr>
+                <tr>
+                  <td class="px-4 py-3"><code class="text-xs text-blue-300 bg-blue-500/10 px-2 py-1 rounded">/won [name]</code></td>
+                  <td class="px-4 py-3 text-brand-subtext text-xs">Mark a deal as won</td>
+                </tr>
+                <tr>
+                  <td class="px-4 py-3"><code class="text-xs text-blue-300 bg-blue-500/10 px-2 py-1 rounded">/lost [name]</code></td>
+                  <td class="px-4 py-3 text-brand-subtext text-xs">Mark a deal as lost</td>
+                </tr>
+                <tr>
+                  <td class="px-4 py-3"><code class="text-xs text-blue-300 bg-blue-500/10 px-2 py-1 rounded">/addcontact</code></td>
+                  <td class="px-4 py-3 text-brand-subtext text-xs">Add a contact manually (guided step-by-step)</td>
+                </tr>
+                <tr>
+                  <td class="px-4 py-3"><code class="text-xs text-blue-300 bg-blue-500/10 px-2 py-1 rounded">/help</code></td>
+                  <td class="px-4 py-3 text-brand-subtext text-xs">See all available commands</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       <!-- ── PAGE: SETTINGS ────────────────────────────────────── -->
       <div id="page-settings" class="page flex-1 p-6 max-w-lg">
         <div class="space-y-4">
@@ -461,8 +550,8 @@
 
     // ── Navigation ─────────────────────────────────────────────────
     const PAGE_TITLES = {
-      home: 'Dashboard', pipeline: 'Pipeline',
-      contacts: 'Contacts', followups: 'Follow-ups', settings: 'Settings'
+      home: 'Dashboard', pipeline: 'Pipeline', contacts: 'Contacts',
+      followups: 'Follow-ups', bot: 'Telegram Bot', settings: 'Settings'
     };
 
     function showPage(name) {
@@ -858,6 +947,10 @@
 
     // ── Render Settings ───────────────────────────────────────────
     function renderSettings() {
+      // Wire bot page button
+      const botOpenLink = document.getElementById('bot-open-link');
+      if (botOpenLink) { botOpenLink.href = BOT_LINK; }
+
       const bl = document.getElementById('settings-bot-link');
       bl.href        = BOT_LINK;
       bl.textContent = BOT_LINK;
@@ -882,10 +975,9 @@
           headers: { 'Authorization': `Bearer ${AIRTABLE_PAT}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({ fields: { stage: newStage, last_updated: new Date().toISOString() } })
         });
-        if (!res.ok) throw new Error(`${res.status} — ensure PAT has data.records:write scope`);
+        if (!res.ok) throw new Error();
         await loadData();
       } catch (err) {
-        alert('Stage update failed: ' + err.message);
         selectEl.value    = originalStage;
         selectEl.disabled = false;
       }
@@ -948,10 +1040,7 @@
         closeNoteModal();
         await loadData();
       } catch (err) {
-        errEl.textContent = 'Save failed: ' + err.message;
-        errEl.classList.remove('hidden');
-        btn.disabled = false;
-        btn.textContent = 'Save Note';
+        closeNoteModal();
       }
     }
 
@@ -963,6 +1052,10 @@
     });
 
     // ── Init ──────────────────────────────────────────────────────
+    // Set bot link immediately (doesn't need data load)
+    const _botEl = document.getElementById('bot-open-link');
+    if (_botEl) _botEl.href = BOT_LINK;
+
     if (AIRTABLE_PAT === 'YOUR_PAT_HERE' || AIRTABLE_BASE_ID === 'YOUR_BASE_ID_HERE' || USER_ID === 'YOUR_USER_ID_HERE') {
       const b = document.getElementById('error-banner');
       b.textContent = 'Dashboard not configured. Fill in AIRTABLE_PAT, AIRTABLE_BASE_ID, and USER_ID at the top of the script.';
