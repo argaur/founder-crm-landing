@@ -485,58 +485,177 @@
       <!-- ── PAGE: SETTINGS ────────────────────────────────────── -->
       <div id="page-settings" class="page flex-1 p-6 max-w-lg">
         <div class="space-y-4">
+
+          <!-- Profile card -->
           <div class="bg-brand-card border border-brand-border rounded-2xl p-5">
-            <h3 class="font-semibold text-brand-text mb-4">Bot</h3>
-            <div class="space-y-3">
+            <div class="flex items-center gap-4">
+              <div id="settings-avatar" class="w-14 h-14 rounded-full bg-brand-accent/20 border border-brand-accent/30 flex items-center justify-center text-xl font-bold text-brand-accent flex-shrink-0">—</div>
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="text-base font-semibold text-brand-text">Your Account</span>
+                  <span class="text-xs bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 px-2 py-0.5 rounded-full font-medium">Free</span>
+                </div>
+                <div class="text-xs text-brand-muted mt-1 truncate" id="settings-user-id-display"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Plan / Upgrade card -->
+          <div class="bg-gradient-to-br from-brand-accent/10 to-purple-500/10 border border-brand-accent/20 rounded-2xl p-5">
+            <div class="flex items-start justify-between gap-4 mb-4">
               <div>
-                <div class="text-xs text-brand-muted mb-1.5">Telegram Bot</div>
+                <div class="text-sm font-semibold text-brand-text mb-1">Free Plan</div>
+                <div class="text-xs text-brand-muted">You're on the free tier. Upgrade for more power.</div>
+              </div>
+              <button disabled class="flex-shrink-0 text-xs bg-brand-accent/30 text-brand-accent border border-brand-accent/30 px-3 py-1.5 rounded-lg font-medium cursor-not-allowed opacity-60 flex items-center gap-1.5">
+                Upgrade
+                <span class="text-[10px] bg-brand-accent/20 px-1.5 py-0.5 rounded">Soon</span>
+              </button>
+            </div>
+            <div class="grid grid-cols-3 gap-2 text-center">
+              <div class="bg-brand-dark/60 rounded-xl py-2.5 px-2">
+                <div class="text-sm font-bold text-brand-text">25</div>
+                <div class="text-[10px] text-brand-muted mt-0.5">Contacts</div>
+              </div>
+              <div class="bg-brand-dark/60 rounded-xl py-2.5 px-2">
+                <div class="text-sm font-bold text-brand-text">100</div>
+                <div class="text-[10px] text-brand-muted mt-0.5">Interactions/mo</div>
+              </div>
+              <div class="bg-brand-dark/60 rounded-xl py-2.5 px-2">
+                <div class="text-sm font-bold text-brand-text">1</div>
+                <div class="text-[10px] text-brand-muted mt-0.5">User</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bot connection -->
+          <div class="bg-brand-card border border-brand-border rounded-2xl p-5">
+            <h3 class="text-xs font-semibold text-brand-muted uppercase tracking-widest mb-4">Bot Connection</h3>
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-brand-muted">Telegram Bot</span>
                 <a id="settings-bot-link" href="#" target="_blank" rel="noopener noreferrer"
-                  class="inline-flex items-center gap-2 text-sm text-brand-accent hover:underline font-mono"></a>
+                  class="inline-flex items-center gap-1.5 text-sm text-brand-accent hover:underline font-mono">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                  Open
+                </a>
               </div>
               <div>
                 <div class="text-xs text-brand-muted mb-1.5">Your User ID</div>
-                <code id="settings-user-id" class="text-xs bg-brand-dark border border-brand-border rounded px-3 py-2 text-brand-subtext block"></code>
+                <code id="settings-user-id" class="text-xs bg-brand-dark border border-brand-border rounded-lg px-3 py-2 text-brand-subtext block font-mono break-all"></code>
               </div>
-            </div>
-          </div>
-          <div class="bg-brand-card border border-brand-border rounded-2xl p-5">
-            <h3 class="font-semibold text-brand-text mb-4">Dashboard Config</h3>
-            <div class="space-y-3 text-sm text-brand-subtext">
-              <div class="flex justify-between">
-                <span class="text-brand-muted">Airtable Base</span>
-                <code class="text-xs font-mono text-brand-subtext" id="settings-base-id"></code>
-              </div>
-              <div class="flex justify-between">
+              <div class="flex items-center justify-between text-sm">
                 <span class="text-brand-muted">Auto-refresh</span>
-                <span>Every 5 minutes</span>
+                <span class="text-brand-subtext">Every 5 min</span>
               </div>
             </div>
           </div>
+
+          <!-- Coming soon settings -->
           <div class="bg-brand-card border border-brand-border rounded-2xl p-5">
-            <h3 class="font-semibold text-brand-text mb-3">Bot Commands</h3>
-            <div class="space-y-2 text-sm">
+            <h3 class="text-xs font-semibold text-brand-muted uppercase tracking-widest mb-4">Settings</h3>
+            <div class="space-y-1">
+
+              <!-- Notification Preferences — coming soon -->
+              <div class="opacity-40 pointer-events-none flex items-center justify-between px-3 py-3 rounded-xl">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-purple-500/15 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-4 h-4 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                  </div>
+                  <div>
+                    <div class="text-sm font-medium text-brand-text">Notification Preferences</div>
+                    <div class="text-xs text-brand-muted">Nudge timing, quiet hours</div>
+                  </div>
+                </div>
+                <span class="text-[10px] bg-brand-dark border border-brand-border text-brand-muted px-2 py-0.5 rounded-full">Soon</span>
+              </div>
+
+              <!-- AI Settings — coming soon -->
+              <div class="opacity-40 pointer-events-none flex items-center justify-between px-3 py-3 rounded-xl">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-blue-500/15 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                  </div>
+                  <div>
+                    <div class="text-sm font-medium text-brand-text">AI Preferences</div>
+                    <div class="text-xs text-brand-muted">Language, tone, extraction style</div>
+                  </div>
+                </div>
+                <span class="text-[10px] bg-brand-dark border border-brand-border text-brand-muted px-2 py-0.5 rounded-full">Soon</span>
+              </div>
+
+              <!-- Team Access — coming soon -->
+              <div class="opacity-40 pointer-events-none flex items-center justify-between px-3 py-3 rounded-xl">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-emerald-500/15 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                  </div>
+                  <div>
+                    <div class="text-sm font-medium text-brand-text">Team & Sharing</div>
+                    <div class="text-xs text-brand-muted">Invite teammates, shared pipeline</div>
+                  </div>
+                </div>
+                <span class="text-[10px] bg-brand-dark border border-brand-border text-brand-muted px-2 py-0.5 rounded-full">Pro</span>
+              </div>
+
+              <!-- Data Export — coming soon -->
+              <div class="opacity-40 pointer-events-none flex items-center justify-between px-3 py-3 rounded-xl">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-orange-500/15 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-4 h-4 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                  </div>
+                  <div>
+                    <div class="text-sm font-medium text-brand-text">Data Export</div>
+                    <div class="text-xs text-brand-muted">CSV, Google Sheets sync</div>
+                  </div>
+                </div>
+                <span class="text-[10px] bg-brand-dark border border-brand-border text-brand-muted px-2 py-0.5 rounded-full">Soon</span>
+              </div>
+
+              <!-- Integrations — coming soon -->
+              <div class="opacity-40 pointer-events-none flex items-center justify-between px-3 py-3 rounded-xl">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-pink-500/15 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-4 h-4 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                  </div>
+                  <div>
+                    <div class="text-sm font-medium text-brand-text">Integrations</div>
+                    <div class="text-xs text-brand-muted">WhatsApp Business, email sync</div>
+                  </div>
+                </div>
+                <span class="text-[10px] bg-brand-dark border border-brand-border text-brand-muted px-2 py-0.5 rounded-full">Pro</span>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Bot commands reference -->
+          <div class="bg-brand-card border border-brand-border rounded-2xl p-5">
+            <h3 class="text-xs font-semibold text-brand-muted uppercase tracking-widest mb-4">Bot Commands</h3>
+            <div class="space-y-2">
               <div class="flex items-center gap-3">
-                <code class="text-xs text-blue-300 bg-blue-500/10 px-2 py-1 rounded w-28 flex-shrink-0">/pipeline</code>
-                <span class="text-brand-subtext">View your full pipeline</span>
+                <code class="text-xs text-blue-300 bg-blue-500/10 px-2 py-1 rounded w-32 flex-shrink-0">/pipeline</code>
+                <span class="text-xs text-brand-subtext">View your full pipeline</span>
               </div>
               <div class="flex items-center gap-3">
-                <code class="text-xs text-blue-300 bg-blue-500/10 px-2 py-1 rounded w-28 flex-shrink-0">/context [name]</code>
-                <span class="text-brand-subtext">Pre-call brief</span>
+                <code class="text-xs text-blue-300 bg-blue-500/10 px-2 py-1 rounded w-32 flex-shrink-0">/context [name]</code>
+                <span class="text-xs text-brand-subtext">Pre-call brief</span>
               </div>
               <div class="flex items-center gap-3">
-                <code class="text-xs text-blue-300 bg-blue-500/10 px-2 py-1 rounded w-28 flex-shrink-0">/ask [question]</code>
-                <span class="text-brand-subtext">Ask about your pipeline</span>
+                <code class="text-xs text-blue-300 bg-blue-500/10 px-2 py-1 rounded w-32 flex-shrink-0">/ask [question]</code>
+                <span class="text-xs text-brand-subtext">Ask about your pipeline</span>
               </div>
               <div class="flex items-center gap-3">
-                <code class="text-xs text-blue-300 bg-blue-500/10 px-2 py-1 rounded w-28 flex-shrink-0">/won [name]</code>
-                <span class="text-brand-subtext">Mark deal as won</span>
+                <code class="text-xs text-blue-300 bg-blue-500/10 px-2 py-1 rounded w-32 flex-shrink-0">/won [name]</code>
+                <span class="text-xs text-brand-subtext">Mark deal as won</span>
               </div>
               <div class="flex items-center gap-3">
-                <code class="text-xs text-blue-300 bg-blue-500/10 px-2 py-1 rounded w-28 flex-shrink-0">/addnote</code>
-                <span class="text-brand-subtext">Add a note to a deal</span>
+                <code class="text-xs text-blue-300 bg-blue-500/10 px-2 py-1 rounded w-32 flex-shrink-0">/addnote</code>
+                <span class="text-xs text-brand-subtext">Add a note to a deal</span>
               </div>
             </div>
           </div>
+
         </div>
       </div>
 
@@ -982,11 +1101,18 @@
       const botOpenLink = document.getElementById('bot-open-link');
       if (botOpenLink) { botOpenLink.href = BOT_LINK; }
 
+      // Bot link
       const bl = document.getElementById('settings-bot-link');
-      bl.href        = BOT_LINK;
-      bl.textContent = BOT_LINK;
-      document.getElementById('settings-user-id').textContent  = USER_ID;
-      document.getElementById('settings-base-id').textContent  = AIRTABLE_BASE_ID;
+      bl.href = BOT_LINK;
+
+      // User ID in both places
+      document.getElementById('settings-user-id').textContent         = USER_ID;
+      document.getElementById('settings-user-id-display').textContent = USER_ID;
+
+      // Avatar initials — derive from USER_ID segments that look like a name
+      const namePart = USER_ID.split('-').find(s => s.length > 2 && isNaN(s) && s !== 'demo');
+      const initial  = namePart ? namePart[0].toUpperCase() : USER_ID[0].toUpperCase();
+      document.getElementById('settings-avatar').textContent = initial;
     }
 
     // ── Utils ─────────────────────────────────────────────────────
