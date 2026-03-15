@@ -6,614 +6,1398 @@
   <title>Rethink CRM — Your conversations are already your CRM</title>
   <meta name="description" content="Rethink CRM turns WhatsApp chats, voice notes, and screenshots into a live pipeline automatically. No manual entry. No learning curve." />
 
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
-          colors: {
-            brand: {
-              dark:        '#0d1117',
-              card:        '#161b22',
-              border:      '#21262d',
-              accent:      '#3b82f6',
-              accentHover: '#2563eb',
-              muted:       '#64748b',
-              text:        '#e2e8f0',
-              subtext:     '#94a3b8',
-            }
-          }
-        }
-      }
-    }
-  </script>
-
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet" />
 
   <style>
-    .gradient-text {
-      background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 50%, #34d399 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      background-size: 200% 200%;
-      animation: gradient-shift 6s ease infinite;
+    /* ── TOKENS ───────────────────────────────────────── */
+    :root {
+      --bg:          #080706;
+      --surface:     #0F0E0C;
+      --surface-2:   #161410;
+      --border:      #252219;
+      --border-l:    #2E2A22;
+      --accent:      #E8920A;
+      --accent-dim:  rgba(232,146,10,0.10);
+      --accent-glow: rgba(232,146,10,0.22);
+      --text:        #EDE8DF;
+      --text-2:      #A09589;
+      --text-3:      #5C554D;
+      --serif:       'Cormorant Garamond', Georgia, serif;
+      --mono:        'DM Mono', monospace;
+      --sans:        'Outfit', system-ui, sans-serif;
     }
-    @keyframes gradient-shift {
-      0%   { background-position: 0% 50%; }
-      50%  { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-weight: 300;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      cursor: crosshair;
     }
-    .card-hover {
-      transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    a, button { cursor: crosshair; }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border-l); border-radius: 2px; }
+
+    a:focus-visible, button:focus-visible {
+      outline: 1px solid var(--accent);
+      outline-offset: 3px;
     }
-    .card-hover:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+
+    /* ── TYPE UTILS ───────────────────────────────────── */
+    .label {
+      font-family: var(--mono);
+      font-size: 0.675rem;
+      font-weight: 400;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-3);
     }
-    #signup-modal { transition: opacity 0.15s ease; }
+    .label-amber {
+      font-family: var(--mono);
+      font-size: 0.675rem;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    /* ── BUTTONS ──────────────────────────────────────── */
+    .btn-primary {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      background: var(--accent);
+      color: #080706;
+      border: none;
+      padding: 10px 22px;
+      transition: background 0.18s, transform 0.14s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-primary:hover { background: #F5A21A; transform: translateY(-1px); }
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-ghost {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--text-3);
+      text-decoration: none;
+      letter-spacing: 0.08em;
+      border-bottom: 1px solid var(--border-l);
+      padding-bottom: 2px;
+      transition: color 0.18s, border-color 0.18s;
+    }
+    .btn-ghost:hover { color: var(--text); border-color: var(--text-2); }
+
+    /* ── NAV ──────────────────────────────────────────── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 0 48px;
+      height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(8,7,6,0.94);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text);
+      letter-spacing: 0.08em;
+      text-decoration: none;
+    }
+    .nav-right { display: flex; align-items: center; gap: 36px; }
+    .nav-link {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--text-3);
+      text-decoration: none;
+      letter-spacing: 0.06em;
+      transition: color 0.18s;
+    }
+    .nav-link:hover { color: var(--text); }
+
+    /* ── HERO ─────────────────────────────────────────── */
+    .hero-wrap {
+      border-bottom: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-wrap::before {
+      content: '';
+      position: absolute;
+      top: 5%; right: -8%;
+      width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(232,146,10,0.055) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .hero {
+      max-width: 1380px;
+      margin: 0 auto;
+      padding: 116px 48px 80px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 72px;
+      align-items: center;
+    }
+
+    /* Hero left */
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 30px;
+    }
+    .tag-dot {
+      width: 6px; height: 6px;
+      background: #4ADE80;
+      border-radius: 50%;
+      animation: blink 2s ease infinite;
+    }
+    @keyframes blink {
+      0%,100% { opacity:1; transform:scale(1); }
+      50% { opacity:0.55; transform:scale(0.82); }
+    }
+    .hero-h1 {
+      font-family: var(--serif);
+      font-size: clamp(52px, 5.8vw, 86px);
+      font-weight: 300;
+      line-height: 1.03;
+      letter-spacing: -0.025em;
+      margin-bottom: 26px;
+    }
+    .hero-h1 em { font-style: italic; color: var(--accent); }
+    .hero-sub {
+      font-size: 1rem;
+      color: var(--text-2);
+      line-height: 1.75;
+      max-width: 440px;
+      margin-bottom: 40px;
+      font-weight: 300;
+    }
+    .hero-ctas { display: flex; align-items: center; gap: 24px; }
+
+    /* Hero right — pipeline visual */
+    .pv {
+      background: var(--surface);
+      border: 1px solid var(--border-l);
+      border-radius: 2px;
+      overflow: hidden;
+      position: relative;
+    }
+    .pv::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    }
+    .pv-bar {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface-2);
+    }
+    .pv-dots { display: flex; gap: 5px; }
+    .pv-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .pv-url {
+      flex: 1;
+      text-align: center;
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--text-3);
+      background: rgba(0,0,0,0.35);
+      padding: 3px 10px;
+      border-radius: 2px;
+    }
+
+    /* Chat bubbles */
+    .pv-chat { padding: 16px; border-bottom: 1px solid var(--border); }
+    .chat-lbl {
+      font-family: var(--mono);
+      font-size: 0.58rem;
+      letter-spacing: 0.12em;
+      color: var(--text-3);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .bubble {
+      max-width: 86%;
+      padding: 8px 12px;
+      border-radius: 2px;
+      font-size: 0.775rem;
+      color: var(--text-2);
+      margin-bottom: 6px;
+      line-height: 1.5;
+      animation: fadein 0.5s ease both;
+    }
+    .bubble-in  { background: var(--surface-2); border-left: 2px solid var(--border-l); }
+    .bubble-out {
+      background: rgba(232,146,10,0.07);
+      border-left: 2px solid rgba(232,146,10,0.28);
+      margin-left: auto;
+    }
+    @keyframes fadein {
+      from { opacity:0; transform:translateY(6px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    /* Extract result */
+    .pv-extract { padding: 16px; }
+    .extract-lbl {
+      font-family: var(--mono);
+      font-size: 0.58rem;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .er {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 7px;
+    }
+    .ek {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--text-3);
+      width: 68px;
+      flex-shrink: 0;
+    }
+    .ev {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--text);
+    }
+    .ev.amber { color: var(--accent); }
+    .badge {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 0.58rem;
+      padding: 2px 6px;
+      border-radius: 1px;
+    }
+    .badge-amber {
+      background: rgba(232,146,10,0.14);
+      border: 1px solid rgba(232,146,10,0.28);
+      color: var(--accent);
+    }
+    .badge-green {
+      background: rgba(74,222,128,0.09);
+      border: 1px solid rgba(74,222,128,0.22);
+      color: #4ADE80;
+    }
+
+    /* ── REVEAL ANIMATIONS ───────────────────────────── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(14px);
+      animation: reveal 0.65s ease both;
+    }
+    @keyframes reveal {
+      to { opacity:1; transform:translateY(0); }
+    }
+    .d1 { animation-delay: 0.08s; }
+    .d2 { animation-delay: 0.2s; }
+    .d3 { animation-delay: 0.32s; }
+    .d4 { animation-delay: 0.44s; }
+    .d5 { animation-delay: 0.56s; }
+
+    /* ── MARQUEE ──────────────────────────────────────── */
+    .marquee-wrap {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      overflow: hidden;
+      padding: 13px 0;
+    }
+    .marquee-track {
+      display: flex;
+      width: max-content;
+      animation: marquee 30s linear infinite;
+    }
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+    .mi {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 44px;
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--text-3);
+      white-space: nowrap;
+    }
+    .mi .dot { width: 3px; height: 3px; background: var(--accent); border-radius: 50%; flex-shrink: 0; }
+    .mi strong { color: var(--text-2); font-weight: 400; }
+
+    /* ── SECTIONS ─────────────────────────────────────── */
+    .sec {
+      border-top: 1px solid var(--border);
+      padding: 96px 48px;
+    }
+    .sec-inner { max-width: 1380px; margin: 0 auto; }
+
+    /* ── PROBLEM ──────────────────────────────────────── */
+    .prob-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: start;
+    }
+    .prob-h2 {
+      font-family: var(--serif);
+      font-size: clamp(34px, 3.8vw, 54px);
+      font-weight: 300;
+      line-height: 1.08;
+      letter-spacing: -0.02em;
+      margin-bottom: 22px;
+    }
+    .prob-h2 em { font-style: italic; color: var(--accent); }
+    .prob-body {
+      font-size: 0.9375rem;
+      color: var(--text-2);
+      line-height: 1.78;
+      max-width: 420px;
+    }
+
+    .compare { border: 1px solid var(--border); }
+    .compare-head {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-bottom: 1px solid var(--border);
+    }
+    .compare-col-head {
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .compare-col-head:first-child { border-right: 1px solid var(--border); }
+    .ch-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .ch-label {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .compare-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-bottom: 1px solid var(--border);
+    }
+    .compare-row:last-child { border-bottom: none; }
+    .compare-cell {
+      padding: 14px 18px;
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      font-size: 0.845rem;
+      color: var(--text-2);
+      line-height: 1.5;
+    }
+    .compare-cell:first-child { border-right: 1px solid var(--border); }
+    .ci {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .ci.r { color: #EF4444; }
+    .ci.g { color: #4ADE80; }
+
+    /* ── HOW IT WORKS ─────────────────────────────────── */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border: 1px solid var(--border);
+    }
+    .step {
+      padding: 48px 40px;
+      border-right: 1px solid var(--border);
+      transition: background 0.28s;
+    }
+    .step:last-child { border-right: none; }
+    .step:hover { background: var(--surface); }
+    .step-num {
+      font-family: var(--serif);
+      font-size: 96px;
+      font-weight: 300;
+      line-height: 1;
+      color: var(--border-l);
+      margin-bottom: 30px;
+      transition: color 0.28s;
+    }
+    .step:hover .step-num { color: rgba(232,146,10,0.35); }
+    .step-title {
+      font-family: var(--serif);
+      font-size: 1.45rem;
+      font-weight: 400;
+      margin-bottom: 12px;
+    }
+    .step-body { font-size: 0.875rem; color: var(--text-2); line-height: 1.75; }
+
+    /* ── FEATURES ─────────────────────────────────────── */
+    .features {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+    .feature {
+      background: var(--bg);
+      padding: 40px;
+      transition: background 0.22s;
+    }
+    .feature:hover { background: var(--surface); }
+    .feat-icon {
+      width: 34px; height: 34px;
+      border: 1px solid var(--border-l);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 22px;
+      transition: border-color 0.22s;
+    }
+    .feature:hover .feat-icon { border-color: var(--accent); }
+    .feat-title {
+      font-family: var(--serif);
+      font-size: 1.25rem;
+      font-weight: 400;
+      margin-bottom: 11px;
+    }
+    .feat-body {
+      font-size: 0.855rem;
+      color: var(--text-2);
+      line-height: 1.78;
+      margin-bottom: 16px;
+    }
+    .feat-code {
+      font-family: var(--mono);
+      font-size: 0.67rem;
+      color: var(--accent);
+      background: var(--accent-dim);
+      border: 1px solid rgba(232,146,10,0.18);
+      padding: 9px 12px;
+      line-height: 1.65;
+    }
+
+    /* ── DASHBOARD ────────────────────────────────────── */
+    .db-wrap {
+      border: 1px solid var(--border-l);
+      border-radius: 2px;
+      overflow: hidden;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.55);
+      position: relative;
+    }
+    .db-wrap::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent 10%, var(--accent) 50%, transparent 90%);
+    }
+    .db-chrome {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .db-dots { display: flex; gap: 5px; }
+    .db-dot { width: 9px; height: 9px; border-radius: 50%; }
+    .db-url {
+      flex: 1;
+      text-align: center;
+      font-family: var(--mono);
+      font-size: 0.64rem;
+      color: var(--text-3);
+      background: rgba(0,0,0,0.3);
+      padding: 3px 12px;
+      border-radius: 2px;
+    }
+    .db-body { display: flex; }
+    .db-sidebar {
+      width: 154px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 18px 10px;
+      flex-shrink: 0;
+    }
+    .db-slbl {
+      font-family: var(--mono);
+      font-size: 0.58rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      padding: 0 8px;
+      margin-bottom: 12px;
+    }
+    .db-nav {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 8px;
+      font-family: var(--mono);
+      font-size: 0.64rem;
+      color: var(--text-3);
+      margin-bottom: 2px;
+      border-radius: 1px;
+    }
+    .db-nav.active {
+      color: var(--accent);
+      background: var(--accent-dim);
+      border-left: 2px solid var(--accent);
+    }
+    .db-main { flex: 1; padding: 18px; overflow: hidden; }
+    .db-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .db-stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 12px;
+      text-align: center;
+    }
+    .db-stat-num {
+      font-family: var(--serif);
+      font-size: 1.5rem;
+      font-weight: 600;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .db-stat-lbl {
+      font-family: var(--mono);
+      font-size: 0.58rem;
+      color: var(--text-3);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .db-pipe {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    .db-col {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 10px;
+    }
+    .db-col-h {
+      font-family: var(--mono);
+      font-size: 0.58rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-3);
+      margin-bottom: 8px;
+    }
+    .db-card {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      padding: 8px;
+      margin-bottom: 6px;
+    }
+    .db-card-name {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+    .db-card-co {
+      font-family: var(--mono);
+      font-size: 0.58rem;
+      color: var(--text-3);
+    }
+    .db-badge {
+      font-family: var(--mono);
+      font-size: 0.54rem;
+      padding: 2px 5px;
+      border-radius: 1px;
+      float: right;
+    }
+    .db-hot  { background: rgba(239,68,68,0.14); color: #EF4444; }
+    .db-warm { background: rgba(234,179,8,0.14); color: #EAB308; }
+    .db-cold { background: rgba(100,100,100,0.14); color: #6B7280; }
+
+    /* ── TESTIMONIALS ─────────────────────────────────── */
+    .testi-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 40px;
+    }
+    .testi {
+      border-top: 1px solid var(--border);
+      padding-top: 28px;
+    }
+    .testi-q {
+      font-family: var(--serif);
+      font-size: 1.05rem;
+      font-weight: 300;
+      font-style: italic;
+      line-height: 1.65;
+      color: var(--text);
+      margin-bottom: 22px;
+    }
+    .testi-who { display: flex; align-items: center; gap: 12px; }
+    .testi-av {
+      width: 30px; height: 30px;
+      border: 1px solid var(--border-l);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+    .testi-name {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--text);
+    }
+    .testi-role {
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      color: var(--text-3);
+      margin-top: 2px;
+    }
+
+    /* ── CTA ──────────────────────────────────────────── */
+    .cta-sec {
+      border-top: 1px solid var(--border);
+      padding: 120px 48px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-sec::before {
+      content: '';
+      position: absolute;
+      bottom: -20%; left: 50%;
+      transform: translateX(-50%);
+      width: 800px; height: 400px;
+      background: radial-gradient(ellipse, rgba(232,146,10,0.11) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .cta-h2 {
+      font-family: var(--serif);
+      font-size: clamp(40px, 5vw, 70px);
+      font-weight: 300;
+      line-height: 1.06;
+      letter-spacing: -0.025em;
+      margin-bottom: 18px;
+    }
+    .cta-h2 em { font-style: italic; color: var(--accent); }
+    .cta-sub {
+      font-size: 0.9375rem;
+      color: var(--text-2);
+      line-height: 1.75;
+      max-width: 460px;
+      margin: 0 auto 36px;
+    }
+    .cta-note {
+      margin-top: 14px;
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--text-3);
+      letter-spacing: 0.06em;
+    }
+
+    /* ── FOOTER ───────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 28px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .foot-brand {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--text-3);
+    }
+    .foot-brand strong { color: var(--text-2); font-weight: 400; }
+    .foot-links { display: flex; align-items: center; gap: 32px; }
+    .foot-link {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--text-3);
+      text-decoration: none;
+      letter-spacing: 0.06em;
+      transition: color 0.18s;
+    }
+    .foot-link:hover { color: var(--text); }
+
+    /* ── MODAL ────────────────────────────────────────── */
+    #signup-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(0,0,0,0.82);
+      backdrop-filter: blur(8px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.18s;
+    }
+    #signup-modal.open { opacity: 1; pointer-events: all; }
+    .modal-box {
+      background: var(--surface);
+      border: 1px solid var(--border-l);
+      border-top: 2px solid var(--accent);
+      padding: 36px;
+      width: 100%;
+      max-width: 410px;
+      position: relative;
+    }
+    .modal-close {
+      position: absolute;
+      top: 18px; right: 18px;
+      background: none;
+      border: none;
+      color: var(--text-3);
+      font-size: 1.2rem;
+      line-height: 1;
+      padding: 4px;
+      transition: color 0.18s;
+    }
+    .modal-close:hover { color: var(--text); }
+    .modal-title {
+      font-family: var(--serif);
+      font-size: 1.35rem;
+      font-weight: 400;
+      margin-bottom: 5px;
+    }
+    .modal-sub {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--text-3);
+      margin-bottom: 26px;
+    }
+    .modal-field {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border-l);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      padding: 12px 14px;
+      margin-bottom: 9px;
+      outline: none;
+      transition: border-color 0.18s;
+    }
+    .modal-field::placeholder { color: var(--text-3); }
+    .modal-field:focus { border-color: var(--accent); }
+    .modal-btn {
+      width: 100%;
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background 0.18s;
+    }
+    .modal-btn:hover { background: #F5A21A; }
+    .modal-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .modal-error {
+      display: none;
+      margin-top: 10px;
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: #EF4444;
+      background: rgba(239,68,68,0.07);
+      border: 1px solid rgba(239,68,68,0.18);
+      padding: 9px 12px;
+    }
+    .modal-success { display: none; margin-top: 14px; }
+    .modal-success-box {
+      background: rgba(74,222,128,0.06);
+      border: 1px solid rgba(74,222,128,0.2);
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .ms-title {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: #4ADE80;
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+    }
+    .ms-body {
+      font-family: var(--mono);
+      font-size: 0.64rem;
+      color: var(--text-3);
+      line-height: 1.6;
+    }
+    .modal-dash-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      background: var(--accent);
+      color: var(--bg);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      padding: 13px;
+      text-decoration: none;
+      transition: background 0.18s;
+    }
+    .modal-dash-btn:hover { background: #F5A21A; }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+
+    /* ── RESPONSIVE ───────────────────────────────────── */
+    @media (max-width: 960px) {
+      nav { padding: 0 24px; }
+      .nav-link { display: none; }
+      .hero { grid-template-columns: 1fr; gap: 44px; padding: 96px 24px 60px; }
+      .hero-right { order: -1; }
+      .hero-h1 { font-size: clamp(42px, 9vw, 64px); }
+      .sec { padding: 64px 24px; }
+      .prob-grid { grid-template-columns: 1fr; gap: 44px; }
+      .steps { grid-template-columns: 1fr; }
+      .step { border-right: none; border-bottom: 1px solid var(--border); }
+      .step:last-child { border-bottom: none; }
+      .features { grid-template-columns: 1fr; }
+      .testi-grid { grid-template-columns: 1fr; gap: 28px; }
+      .db-sidebar { display: none; }
+      .db-stats { grid-template-columns: repeat(2, 1fr); }
+      .db-pipe { grid-template-columns: repeat(2, 1fr); }
+      footer { flex-direction: column; gap: 18px; text-align: center; }
+      .cta-sec { padding: 72px 24px; }
+    }
+    @media (max-width: 580px) {
+      .hero-ctas { flex-direction: column; align-items: flex-start; }
+      .db-stats { grid-template-columns: repeat(2, 1fr); }
+      .foot-links { flex-wrap: wrap; justify-content: center; gap: 18px; }
+      .compare-head { grid-template-columns: 1fr; }
+      .compare-col-head:first-child { border-right: none; border-bottom: 1px solid var(--border); }
+      .compare-row { grid-template-columns: 1fr; }
+      .compare-cell:first-child { border-right: none; border-bottom: 1px solid var(--border); }
+    }
   </style>
 </head>
 
-<body class="bg-brand-dark text-brand-text font-sans antialiased">
+<body>
 
-  <!-- ─── NAV ──────────────────────────────────────────────────── -->
-  <nav class="fixed top-0 left-0 right-0 z-50 border-b border-brand-border bg-brand-dark/90 backdrop-blur-md">
-    <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-      <span class="font-bold text-lg tracking-tight text-brand-text">Rethink CRM</span>
-      <div class="flex items-center gap-4">
-        <a href="#how-it-works" class="hidden sm:block text-sm text-brand-subtext hover:text-brand-text transition-colors duration-150">How it works</a>
-        <button onclick="openModal()" class="text-sm font-semibold bg-brand-accent hover:bg-brand-accentHover text-white px-4 py-2 rounded-lg transition-colors duration-150 cta-button">
-          Start Free
-        </button>
+<!-- ── NAV ──────────────────────────────────────────────── -->
+<nav>
+  <a href="#" class="nav-logo">RETHINK CRM</a>
+  <div class="nav-right">
+    <a href="#how-it-works" class="nav-link">How it works</a>
+    <button class="btn-primary" onclick="openModal()">START FREE →</button>
+  </div>
+</nav>
+
+<!-- ── HERO ─────────────────────────────────────────────── -->
+<div class="hero-wrap">
+  <div class="hero">
+    <div>
+      <div class="hero-tag reveal d1">
+        <span class="tag-dot"></span>
+        <span class="label-amber">Built for founders who sell personally</span>
       </div>
-    </div>
-  </nav>
-
-  <!-- ─── SECTION 1: HERO ──────────────────────────────────────── -->
-  <section class="hero-gradient pt-32 pb-24 px-6 text-center">
-    <div class="max-w-4xl mx-auto">
-
-      <div class="inline-flex items-center gap-2 bg-brand-card border border-brand-border rounded-full px-4 py-1.5 text-sm text-brand-subtext mb-8">
-        <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse inline-block"></span>
-        Built for founders who sell personally
-      </div>
-
-      <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight tracking-tight mb-6">
-        Your sales conversations<br />
-        <span class="gradient-text">are already your CRM.</span>
+      <h1 class="hero-h1 reveal d2">
+        Your conversations<br />
+        are <em>already</em><br />
+        your CRM.
       </h1>
-
-      <p class="text-lg sm:text-xl text-brand-subtext max-w-2xl mx-auto leading-relaxed mb-10">
-        Rethink CRM turns WhatsApp chats, voice notes, and screenshots into a live pipeline — automatically.
-        No manual entry. No setup. No abandoned spreadsheet.
+      <p class="hero-sub reveal d3">
+        Forward a WhatsApp chat. Record a voice note. Send a screenshot.
+        Rethink CRM reads it, extracts the deal, and updates your pipeline — automatically.
       </p>
-
-      <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-        <button onclick="openModal()" class="cta-button w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-brand-accent hover:bg-brand-accentHover text-white font-semibold text-base px-8 py-4 rounded-xl shadow-lg shadow-blue-900/30">
-          Start Free
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
-          </svg>
-        </button>
-        <a href="#how-it-works" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-brand-border hover:border-blue-500/50 text-brand-subtext hover:text-brand-text font-medium text-base px-8 py-4 rounded-xl transition-all duration-200">
-          See How It Works
-        </a>
-      </div>
-
-      <!-- Flow diagram -->
-      <div class="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
-        <div class="flex items-center gap-3 bg-brand-card border border-brand-border rounded-xl px-4 py-3 w-full sm:w-auto sm:min-w-[148px]">
-          <span class="text-xl">💬</span>
-          <div class="text-left">
-            <div class="text-xs text-brand-muted">WhatsApp</div>
-            <div class="text-sm font-medium">Conversation</div>
-          </div>
-        </div>
-        <svg class="w-4 h-4 text-brand-muted rotate-90 sm:rotate-0 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-
-        <div class="flex items-center gap-3 bg-brand-card border border-brand-border rounded-xl px-4 py-3 w-full sm:w-auto sm:min-w-[148px]">
-          <span class="text-xl">🤖</span>
-          <div class="text-left">
-            <div class="text-xs text-brand-muted">Telegram Bot</div>
-            <div class="text-sm font-medium">Forward it</div>
-          </div>
-        </div>
-        <svg class="w-4 h-4 text-brand-muted rotate-90 sm:rotate-0 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-
-        <div class="flex items-center gap-3 bg-brand-card border border-brand-border rounded-xl px-4 py-3 w-full sm:w-auto sm:min-w-[148px]">
-          <span class="text-xl">✨</span>
-          <div class="text-left">
-            <div class="text-xs text-brand-muted">AI (Claude)</div>
-            <div class="text-sm font-medium">Extracts deal</div>
-          </div>
-        </div>
-        <svg class="w-4 h-4 text-brand-muted rotate-90 sm:rotate-0 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-
-        <div class="flex items-center gap-3 bg-blue-500/10 border border-blue-500/30 rounded-xl px-4 py-3 w-full sm:w-auto sm:min-w-[148px]">
-          <span class="text-xl">📊</span>
-          <div class="text-left">
-            <div class="text-xs text-blue-400/70">Dashboard</div>
-            <div class="text-sm font-medium text-blue-300">Auto-updates</div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- ─── SECTION 2: PROBLEM ───────────────────────────────────── -->
-  <section class="py-20 px-6 bg-brand-card border-y border-brand-border">
-    <div class="max-w-5xl mx-auto">
-      <p class="text-center text-brand-muted text-xs uppercase tracking-widest font-semibold mb-3">The real problem</p>
-      <h2 class="text-3xl sm:text-4xl font-bold text-center mb-4">Why Traditional CRMs Fail Founders</h2>
-      <p class="text-center text-brand-subtext max-w-xl mx-auto mb-14 text-base leading-relaxed">
-        You're managing 50–150 conversations across WhatsApp, LinkedIn, and email. Context lives in your head. Follow-ups get missed. CRMs don't fail because of bad software — they fail because founders don't log.
-      </p>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
-        <div class="rounded-2xl border border-red-900/40 bg-red-950/10 p-6">
-          <div class="flex items-center gap-2 mb-5">
-            <span class="w-2.5 h-2.5 rounded-full bg-red-500 inline-block"></span>
-            <span class="font-semibold text-red-400">Traditional CRM</span>
-          </div>
-          <ul class="space-y-3 text-sm text-brand-subtext">
-            <li class="flex items-start gap-2.5"><span class="text-red-500 mt-0.5 flex-shrink-0">✕</span>Manual data entry after every call</li>
-            <li class="flex items-start gap-2.5"><span class="text-red-500 mt-0.5 flex-shrink-0">✕</span>Complicated setup. Takes days.</li>
-            <li class="flex items-start gap-2.5"><span class="text-red-500 mt-0.5 flex-shrink-0">✕</span>Designed for sales teams, not solo founders</li>
-            <li class="flex items-start gap-2.5"><span class="text-red-500 mt-0.5 flex-shrink-0">✕</span>Abandoned within 3 weeks on average</li>
-            <li class="flex items-start gap-2.5"><span class="text-red-500 mt-0.5 flex-shrink-0">✕</span>Pipeline only as good as your logging</li>
-          </ul>
-        </div>
-
-        <div class="rounded-2xl border border-blue-500/30 bg-blue-500/5 p-6">
-          <div class="flex items-center gap-2 mb-5">
-            <span class="w-2.5 h-2.5 rounded-full bg-blue-400 inline-block"></span>
-            <span class="font-semibold text-blue-400">Rethink CRM</span>
-          </div>
-          <ul class="space-y-3 text-sm text-brand-subtext">
-            <li class="flex items-start gap-2.5"><span class="text-blue-400 mt-0.5 flex-shrink-0">✓</span>Forward a conversation — deal is created</li>
-            <li class="flex items-start gap-2.5"><span class="text-blue-400 mt-0.5 flex-shrink-0">✓</span>Running in 60 seconds. Zero setup.</li>
-            <li class="flex items-start gap-2.5"><span class="text-blue-400 mt-0.5 flex-shrink-0">✓</span>Built for founders who sell personally</li>
-            <li class="flex items-start gap-2.5"><span class="text-blue-400 mt-0.5 flex-shrink-0">✓</span>Works through Telegram — where you already are</li>
-            <li class="flex items-start gap-2.5"><span class="text-blue-400 mt-0.5 flex-shrink-0">✓</span>AI fills in the context. You just sell.</li>
-          </ul>
-        </div>
+      <div class="hero-ctas reveal d4">
+        <button class="btn-primary" onclick="openModal()">START FREE →</button>
+        <a href="#how-it-works" class="btn-ghost">see how it works</a>
       </div>
     </div>
-  </section>
 
-  <!-- ─── SECTION 3: HOW IT WORKS ─────────────────────────────── -->
-  <section id="how-it-works" class="py-20 px-6">
-    <div class="max-w-4xl mx-auto">
-      <p class="text-center text-brand-muted text-xs uppercase tracking-widest font-semibold mb-3">No learning curve</p>
-      <h2 class="text-3xl sm:text-4xl font-bold text-center mb-14">Three steps. That's it.</h2>
-
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div class="card-hover rounded-2xl border border-brand-border bg-brand-card p-6 text-center">
-          <div class="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mx-auto mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-4 4v-4z"/>
-            </svg>
+    <div class="reveal d5">
+      <div class="pv">
+        <div class="pv-bar">
+          <div class="pv-dots">
+            <div class="pv-dot" style="background:rgba(239,68,68,0.4)"></div>
+            <div class="pv-dot" style="background:rgba(234,179,8,0.4)"></div>
+            <div class="pv-dot" style="background:rgba(74,222,128,0.4)"></div>
           </div>
-          <div class="text-xs font-semibold text-brand-muted uppercase tracking-widest mb-2">Step 1</div>
-          <h3 class="font-semibold text-lg mb-2">Forward a conversation</h3>
-          <p class="text-brand-subtext text-sm leading-relaxed">Copy a WhatsApp chat, record a voice note after a call, or send a screenshot. Forward it to your Rethink CRM bot on Telegram.</p>
+          <div class="pv-url">telegram → rethinkcrm_bot</div>
         </div>
-
-        <div class="card-hover rounded-2xl border border-brand-border bg-brand-card p-6 text-center">
-          <div class="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center mx-auto mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.347.349A3.75 3.75 0 0114.25 21h-4.5a3.75 3.75 0 01-2.648-1.101l-.347-.349z"/>
-            </svg>
-          </div>
-          <div class="text-xs font-semibold text-brand-muted uppercase tracking-widest mb-2">Step 2</div>
-          <h3 class="font-semibold text-lg mb-2">AI extracts deal context</h3>
-          <p class="text-brand-subtext text-sm leading-relaxed">Claude AI reads the conversation and pulls out contact name, company, deal stage, next action, and sentiment. Automatically.</p>
+        <div class="pv-chat">
+          <div class="chat-lbl">Forwarded from WhatsApp</div>
+          <div class="bubble bubble-in" style="animation-delay:0.9s">"Hey, we loved the demo. Budget approved — ₹6L. Can we do a contract call this week?"</div>
+          <div class="bubble bubble-out" style="animation-delay:1.2s">→ forwarded to bot</div>
         </div>
-
-        <div class="card-hover rounded-2xl border border-brand-border bg-brand-card p-6 text-center">
-          <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/>
-            </svg>
-          </div>
-          <div class="text-xs font-semibold text-brand-muted uppercase tracking-widest mb-2">Step 3</div>
-          <h3 class="font-semibold text-lg mb-2">Pipeline updates itself</h3>
-          <p class="text-brand-subtext text-sm leading-relaxed">Your dashboard reflects the deal instantly. No forms. No pipeline to update manually. The conversation is the record.</p>
+        <div class="pv-extract">
+          <div class="extract-lbl">⬡ Claude extracted</div>
+          <div class="er"><span class="ek">contact</span><span class="ev">Arjun Mehta</span></div>
+          <div class="er"><span class="ek">company</span><span class="ev">TechCorp</span></div>
+          <div class="er"><span class="ek">stage</span><span class="ev"><span class="badge badge-amber">Negotiating</span></span></div>
+          <div class="er"><span class="ek">budget</span><span class="ev amber">₹6,00,000</span></div>
+          <div class="er"><span class="ek">next</span><span class="ev">Contract call this week</span></div>
+          <div class="er"><span class="ek">signal</span><span class="ev"><span class="badge badge-green">Hot ↑</span></span></div>
         </div>
       </div>
-    </div>
-  </section>
-
-  <!-- ─── SECTION 4: CORE VALUE FEATURES ──────────────────────── -->
-  <section class="py-20 px-6 bg-brand-card border-y border-brand-border">
-    <div class="max-w-5xl mx-auto">
-      <p class="text-center text-brand-muted text-xs uppercase tracking-widest font-semibold mb-3">Built for how founders actually work</p>
-      <h2 class="text-3xl sm:text-4xl font-bold text-center mb-14">Changes behavior, not just workflow.</h2>
-
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div class="card-hover rounded-2xl border border-brand-border bg-brand-dark p-6">
-          <div class="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-            </svg>
-          </div>
-          <h3 class="font-semibold text-lg mb-2">Never miss a follow-up</h3>
-          <p class="text-brand-subtext text-sm leading-relaxed mb-4">The bot tracks inactivity per deal stage. When a deal goes cold, you get a nudge — with full context on what was last discussed.</p>
-          <div class="text-xs text-orange-400 bg-orange-500/10 border border-orange-500/20 rounded-lg px-3 py-2 font-mono">
-            "Arjun @ TechCorp hasn't moved in 3 days. Last: Proposal Sent."
-          </div>
-        </div>
-
-        <div class="card-hover rounded-2xl border border-brand-border bg-brand-dark p-6">
-          <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-            </svg>
-          </div>
-          <h3 class="font-semibold text-lg mb-2">Pre-call context in seconds</h3>
-          <p class="text-brand-subtext text-sm leading-relaxed mb-4">Before any call, type <code class="text-blue-300 bg-blue-500/10 px-1 rounded">/context name</code> and instantly see: last discussion, stage, budget signal, and suggested talking points.</p>
-          <div class="text-xs text-blue-400 bg-blue-500/10 border border-blue-500/20 rounded-lg px-3 py-2 font-mono">
-            "Priya @ Razorpay — 4d. Budget: ₹8L. Ask about Q2 timeline."
-          </div>
-        </div>
-
-        <div class="card-hover rounded-2xl border border-brand-border bg-brand-dark p-6">
-          <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-            </svg>
-          </div>
-          <h3 class="font-semibold text-lg mb-2">Ask your pipeline anything</h3>
-          <p class="text-brand-subtext text-sm leading-relaxed mb-4">No spreadsheets. Ask in plain language using <code class="text-emerald-300 bg-emerald-500/10 px-1 rounded">/ask</code> and AI answers from your actual deal data.</p>
-          <div class="text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-3 py-2 font-mono">
-            "/ask who should I follow up today?"
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ─── SECTION 5: PRODUCT PREVIEW ──────────────────────────── -->
-  <section class="py-20 px-6">
-    <div class="max-w-5xl mx-auto">
-      <p class="text-center text-brand-muted text-xs uppercase tracking-widest font-semibold mb-3">What it looks like</p>
-      <h2 class="text-3xl sm:text-4xl font-bold text-center mb-4">The bot does the work.<br />The dashboard shows the picture.</h2>
-      <p class="text-center text-brand-subtext max-w-xl mx-auto mb-12 text-base leading-relaxed">
-        Your primary interface is Telegram. The dashboard exists purely for visibility — your pipeline, deal heat scores, and follow-up queue, updated automatically.
-      </p>
-
-      <!-- Mock dashboard -->
-      <div class="rounded-2xl border border-brand-border bg-brand-card overflow-hidden shadow-2xl shadow-black/50">
-        <!-- Browser bar -->
-        <div class="border-b border-brand-border px-4 py-2.5 flex items-center gap-3 bg-brand-dark/50">
-          <div class="flex gap-1.5">
-            <div class="w-3 h-3 rounded-full bg-red-500/50"></div>
-            <div class="w-3 h-3 rounded-full bg-yellow-500/50"></div>
-            <div class="w-3 h-3 rounded-full bg-green-500/50"></div>
-          </div>
-          <div class="flex-1 text-center text-xs text-brand-muted bg-brand-dark rounded px-3 py-1">app.rethinkcrm.com/dashboard</div>
-        </div>
-
-        <div class="flex">
-          <!-- Sidebar -->
-          <div class="w-44 border-r border-brand-border p-3 space-y-1 hidden sm:block bg-brand-dark/30">
-            <div class="text-xs font-semibold text-brand-muted uppercase tracking-widest px-2 py-1 mb-2">Rethink CRM</div>
-            <div class="flex items-center gap-2 px-2 py-2 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-medium">
-              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-              Dashboard
-            </div>
-            <div class="flex items-center gap-2 px-2 py-2 rounded-lg text-brand-muted text-xs hover:text-brand-subtext">
-              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7"/></svg>
-              Pipeline
-            </div>
-            <div class="flex items-center gap-2 px-2 py-2 rounded-lg text-brand-muted text-xs">
-              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg>
-              Contacts
-            </div>
-            <div class="flex items-center gap-2 px-2 py-2 rounded-lg text-brand-muted text-xs">
-              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5"/></svg>
-              Follow-ups
-            </div>
-          </div>
-
-          <!-- Main content -->
-          <div class="flex-1 p-4">
-            <!-- Stats -->
-            <div class="grid grid-cols-4 gap-3 mb-4">
-              <div class="bg-brand-dark rounded-xl border border-brand-border p-3 text-center">
-                <div class="text-xl font-bold text-brand-text">6</div>
-                <div class="text-xs text-brand-muted mt-0.5">Active</div>
-              </div>
-              <div class="bg-brand-dark rounded-xl border border-brand-border p-3 text-center">
-                <div class="text-xl font-bold text-emerald-400">1</div>
-                <div class="text-xs text-brand-muted mt-0.5">Won</div>
-              </div>
-              <div class="bg-brand-dark rounded-xl border border-brand-border p-3 text-center">
-                <div class="text-xl font-bold text-orange-400">3</div>
-                <div class="text-xs text-brand-muted mt-0.5">Follow-ups</div>
-              </div>
-              <div class="bg-brand-dark rounded-xl border border-brand-border p-3 text-center">
-                <div class="text-xl font-bold text-blue-400">72</div>
-                <div class="text-xs text-brand-muted mt-0.5">Avg Heat</div>
-              </div>
-            </div>
-
-            <!-- Pipeline preview -->
-            <div class="grid grid-cols-4 gap-2">
-              <div class="bg-brand-dark rounded-xl border border-brand-border p-2.5">
-                <div class="text-xs font-semibold text-brand-muted uppercase tracking-widest mb-2">Lead · 1</div>
-                <div class="bg-brand-card rounded-lg border border-brand-border p-2">
-                  <div class="flex items-center justify-between mb-0.5">
-                    <span class="text-xs font-medium truncate">Sneha Patel</span>
-                    <span class="text-xs bg-gray-500/20 text-gray-400 px-1.5 py-0.5 rounded ml-1 flex-shrink-0">Cold</span>
-                  </div>
-                  <div class="text-xs text-brand-muted">Zepto</div>
-                </div>
-              </div>
-              <div class="bg-brand-dark rounded-xl border border-brand-border p-2.5">
-                <div class="text-xs font-semibold text-brand-muted uppercase tracking-widest mb-2">Eval · 2</div>
-                <div class="bg-brand-card rounded-lg border border-brand-border p-2 mb-1.5">
-                  <div class="flex items-center justify-between mb-0.5">
-                    <span class="text-xs font-medium truncate">Rahul Gupta</span>
-                    <span class="text-xs bg-yellow-500/20 text-yellow-400 px-1.5 py-0.5 rounded ml-1 flex-shrink-0">Warm</span>
-                  </div>
-                  <div class="text-xs text-brand-muted">Swiggy</div>
-                </div>
-                <div class="bg-brand-card rounded-lg border border-brand-border p-2">
-                  <div class="flex items-center justify-between mb-0.5">
-                    <span class="text-xs font-medium truncate">Ananya K.</span>
-                    <span class="text-xs bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded ml-1 flex-shrink-0">Hot</span>
-                  </div>
-                  <div class="text-xs text-brand-muted">Groww</div>
-                </div>
-              </div>
-              <div class="bg-brand-dark rounded-xl border border-brand-border p-2.5">
-                <div class="text-xs font-semibold text-brand-muted uppercase tracking-widest mb-2">Proposal · 2</div>
-                <div class="bg-brand-card rounded-lg border border-brand-border p-2 mb-1.5">
-                  <div class="flex items-center justify-between mb-0.5">
-                    <span class="text-xs font-medium truncate">Priya Sharma</span>
-                    <span class="text-xs bg-yellow-500/20 text-yellow-400 px-1.5 py-0.5 rounded ml-1 flex-shrink-0">Warm</span>
-                  </div>
-                  <div class="text-xs text-brand-muted">Razorpay</div>
-                </div>
-                <div class="bg-brand-card rounded-lg border border-brand-border p-2">
-                  <div class="flex items-center justify-between mb-0.5">
-                    <span class="text-xs font-medium truncate">Nisha Joshi</span>
-                    <span class="text-xs bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded ml-1 flex-shrink-0">Hot</span>
-                  </div>
-                  <div class="text-xs text-brand-muted">Dukaan</div>
-                </div>
-              </div>
-              <div class="bg-brand-dark rounded-xl border border-brand-border p-2.5">
-                <div class="text-xs font-semibold text-brand-muted uppercase tracking-widest mb-2">Negot. · 1</div>
-                <div class="bg-brand-card rounded-lg border border-brand-border p-2">
-                  <div class="flex items-center justify-between mb-0.5">
-                    <span class="text-xs font-medium truncate">Arjun Mehta</span>
-                    <span class="text-xs bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded ml-1 flex-shrink-0">Hot</span>
-                  </div>
-                  <div class="text-xs text-brand-muted">TechCorp</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ─── SECTION 6: SOCIAL PROOF ─────────────────────────────── -->
-  <section class="py-20 px-6 bg-brand-card border-y border-brand-border">
-    <div class="max-w-5xl mx-auto">
-      <p class="text-center text-brand-muted text-xs uppercase tracking-widest font-semibold mb-3">From founders like you</p>
-      <h2 class="text-3xl sm:text-4xl font-bold text-center mb-12">The CRM you'll actually use.</h2>
-
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div class="card-hover rounded-2xl border border-brand-border bg-brand-dark p-6">
-          <div class="text-yellow-400 text-sm mb-4">★★★★★</div>
-          <p class="text-brand-subtext text-sm leading-relaxed mb-5">"I tried Pipedrive, HubSpot, even a Notion template. All failed because I never logged anything. Rethink CRM works because I don't have to."</p>
-          <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-blue-400 font-semibold text-sm flex-shrink-0">RV</div>
-            <div>
-              <div class="text-sm font-medium text-brand-text">Rohit Verma</div>
-              <div class="text-xs text-brand-muted">Founder, B2B SaaS · Delhi</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card-hover rounded-2xl border border-brand-border bg-brand-dark p-6">
-          <div class="text-yellow-400 text-sm mb-4">★★★★★</div>
-          <p class="text-brand-subtext text-sm leading-relaxed mb-5">"I send a voice note after every call. The bot transcribes it, extracts the deal, and my pipeline is updated before I sit down at my desk."</p>
-          <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-full bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400 font-semibold text-sm flex-shrink-0">AK</div>
-            <div>
-              <div class="text-sm font-medium text-brand-text">Anjali Kapoor</div>
-              <div class="text-xs text-brand-muted">Co-founder, Fintech · Bangalore</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card-hover rounded-2xl border border-brand-border bg-brand-dark p-6">
-          <div class="text-yellow-400 text-sm mb-4">★★★★★</div>
-          <p class="text-brand-subtext text-sm leading-relaxed mb-5">"The /context command before a call is a game-changer. Everything I discussed 3 weeks ago, their budget, what I promised — all of it, instantly."</p>
-          <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-semibold text-sm flex-shrink-0">SM</div>
-            <div>
-              <div class="text-sm font-medium text-brand-text">Sameer Mehta</div>
-              <div class="text-xs text-brand-muted">Founder, D2C · Mumbai</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ─── SECTION 7: FINAL CTA ─────────────────────────────────── -->
-  <section class="cta-banner-gradient py-24 px-6 text-center">
-    <div class="max-w-2xl mx-auto">
-      <h2 class="text-3xl sm:text-4xl font-extrabold mb-4">
-        Start your first deal<br />
-        <span class="gradient-text">in 30 seconds.</span>
-      </h2>
-      <p class="text-brand-subtext text-lg mb-8 leading-relaxed">
-        No setup. No forms to configure. No pipeline to build.<br />
-        Just forward your next WhatsApp conversation.
-      </p>
-      <button onclick="openModal()" class="cta-button inline-flex items-center gap-2 bg-brand-accent hover:bg-brand-accentHover text-white font-semibold text-lg px-10 py-4 rounded-xl shadow-lg shadow-blue-900/30">
-        Start Free
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
-        </svg>
-      </button>
-      <p class="mt-4 text-sm text-brand-muted">Free. No credit card required.</p>
-    </div>
-  </section>
-
-  <!-- ─── FOOTER ────────────────────────────────────────────────── -->
-  <footer class="border-t border-brand-border bg-brand-dark py-8 px-6">
-    <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-brand-muted text-sm">
-      <div>
-        <span class="font-semibold text-brand-text">Rethink CRM</span>
-        <span class="ml-2">· Zero-input deal tracking for Indian B2B founders</span>
-      </div>
-      <div class="flex items-center gap-4">
-        <a href="https://argaur.github.io/founder-crm-landing/dashboard/" target="_blank" rel="noopener noreferrer" class="hover:text-brand-text transition-colors duration-150">Dashboard</a>
-        <span class="text-brand-border">·</span>
-        <a href="https://github.com/argaur/founder-crm-landing" target="_blank" rel="noopener noreferrer" class="hover:text-brand-text transition-colors duration-150">GitHub</a>
-        <span class="text-brand-border">·</span>
-        <a href="https://t.me/RethinkCRMbot" target="_blank" rel="noopener noreferrer" class="hover:text-brand-text transition-colors duration-150">Open Bot</a>
-      </div>
-    </div>
-  </footer>
-
-  <!-- ─── SIGNUP MODAL ──────────────────────────────────────────── -->
-  <div id="signup-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm hidden">
-    <div class="bg-brand-card border border-brand-border rounded-2xl p-6 w-full max-w-md shadow-2xl shadow-black/60">
-      <div class="flex items-start justify-between mb-5">
-        <div>
-          <h3 class="text-lg font-semibold text-brand-text">Get started with Rethink CRM</h3>
-          <p class="text-brand-subtext text-sm mt-0.5">Get your personal Telegram bot link in seconds.</p>
-        </div>
-        <button onclick="closeModal()" class="text-brand-muted hover:text-brand-text transition-colors p-1 mt-0.5 flex-shrink-0">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-          </svg>
-        </button>
-      </div>
-
-      <form id="signup-form" novalidate class="space-y-3">
-        <input type="text" id="field-name" placeholder="First Name" required
-          class="w-full bg-brand-dark border border-brand-border rounded-lg px-4 py-3 text-brand-text text-sm placeholder-brand-muted focus:outline-none focus:border-brand-accent transition-colors duration-150" />
-        <input type="email" id="field-email" placeholder="Email" required
-          class="w-full bg-brand-dark border border-brand-border rounded-lg px-4 py-3 text-brand-text text-sm placeholder-brand-muted focus:outline-none focus:border-brand-accent transition-colors duration-150" />
-        <input type="text" id="field-company" placeholder="Company" required
-          class="w-full bg-brand-dark border border-brand-border rounded-lg px-4 py-3 text-brand-text text-sm placeholder-brand-muted focus:outline-none focus:border-brand-accent transition-colors duration-150" />
-        <button type="submit" id="signup-btn"
-          class="w-full bg-brand-accent hover:bg-brand-accentHover text-white font-semibold text-base px-6 py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
-          <span id="btn-text">Get My Bot Link</span>
-          <svg id="btn-spinner" class="hidden w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-          </svg>
-        </button>
-      </form>
-
-      <div id="signup-success" class="hidden mt-4">
-        <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 mb-3">
-          <p class="text-sm text-emerald-400 font-medium mb-1">You're all set!</p>
-          <p class="text-xs text-brand-subtext">Your bot is ready. The dashboard will show you how to send your first conversation — takes 30 seconds.</p>
-        </div>
-        <a id="dashboard-link" href="https://argaur.github.io/founder-crm-landing/dashboard/"
-          class="flex items-center justify-center gap-2 w-full bg-brand-accent hover:bg-brand-accentHover text-white font-semibold px-6 py-3 rounded-xl transition-all duration-200 cta-button">
-          Continue to Dashboard
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
-          </svg>
-        </a>
-      </div>
-
-      <div id="signup-error" class="hidden mt-3 text-sm text-red-400 bg-red-900/20 border border-red-800/30 rounded-lg px-4 py-3"></div>
     </div>
   </div>
+</div>
 
-  <!-- ─── SCRIPTS ───────────────────────────────────────────────── -->
-  <script>
-    const RAILWAY_URL = "https://web-production-21776.up.railway.app";
+<!-- ── MARQUEE ───────────────────────────────────────────── -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <div class="mi"><span class="dot"></span><strong>Forward a chat</strong> → deal created in 4 seconds</div>
+    <div class="mi"><span class="dot"></span>No manual entry · No spreadsheet · No abandoned CRM</div>
+    <div class="mi"><span class="dot"></span><strong>/context Priya</strong> → last discussion, budget, next step — instantly</div>
+    <div class="mi"><span class="dot"></span>Works on WhatsApp · Voice Notes · Screenshots · LinkedIn DMs</div>
+    <div class="mi"><span class="dot"></span><strong>/ask who should I follow up today?</strong> → AI answers from your data</div>
+    <div class="mi"><span class="dot"></span>Stale deal nudges with full context · Never lose a follow-up again</div>
+    <!-- duplicate for seamless loop -->
+    <div class="mi"><span class="dot"></span><strong>Forward a chat</strong> → deal created in 4 seconds</div>
+    <div class="mi"><span class="dot"></span>No manual entry · No spreadsheet · No abandoned CRM</div>
+    <div class="mi"><span class="dot"></span><strong>/context Priya</strong> → last discussion, budget, next step — instantly</div>
+    <div class="mi"><span class="dot"></span>Works on WhatsApp · Voice Notes · Screenshots · LinkedIn DMs</div>
+    <div class="mi"><span class="dot"></span><strong>/ask who should I follow up today?</strong> → AI answers from your data</div>
+    <div class="mi"><span class="dot"></span>Stale deal nudges with full context · Never lose a follow-up again</div>
+  </div>
+</div>
 
-    function openModal() {
-      document.getElementById('signup-modal').classList.remove('hidden');
-      document.body.style.overflow = 'hidden';
+<!-- ── PROBLEM ───────────────────────────────────────────── -->
+<div class="sec">
+  <div class="sec-inner">
+    <div style="margin-bottom:52px"><span class="label">The real problem</span></div>
+    <div class="prob-grid">
+      <div>
+        <h2 class="prob-h2">
+          CRMs don't fail<br />
+          because of <em>bad<br />software.</em><br />
+          They fail because<br />
+          founders don't log.
+        </h2>
+        <p class="prob-body">
+          You're managing 50–150 conversations across WhatsApp, LinkedIn, and email. Context lives in your head. Follow-ups get missed. The CRM is always one step behind — because you are.
+        </p>
+      </div>
+      <div>
+        <div class="compare">
+          <div class="compare-head">
+            <div class="compare-col-head">
+              <span class="ch-dot" style="background:#EF4444;opacity:0.6"></span>
+              <span class="ch-label" style="color:var(--text-3)">Traditional CRM</span>
+            </div>
+            <div class="compare-col-head">
+              <span class="ch-dot" style="background:var(--accent)"></span>
+              <span class="ch-label" style="color:var(--accent)">Rethink CRM</span>
+            </div>
+          </div>
+          <div class="compare-row">
+            <div class="compare-cell"><span class="ci r">✕</span>Manual data entry after every call</div>
+            <div class="compare-cell"><span class="ci g">✓</span>Forward a conversation — deal is created</div>
+          </div>
+          <div class="compare-row">
+            <div class="compare-cell"><span class="ci r">✕</span>Complicated setup. Takes days</div>
+            <div class="compare-cell"><span class="ci g">✓</span>Running in 60 seconds. Zero setup</div>
+          </div>
+          <div class="compare-row">
+            <div class="compare-cell"><span class="ci r">✕</span>Designed for sales teams, not solo founders</div>
+            <div class="compare-cell"><span class="ci g">✓</span>Built for founders who sell personally</div>
+          </div>
+          <div class="compare-row">
+            <div class="compare-cell"><span class="ci r">✕</span>Abandoned within 3 weeks on average</div>
+            <div class="compare-cell"><span class="ci g">✓</span>Works through Telegram — where you already are</div>
+          </div>
+          <div class="compare-row">
+            <div class="compare-cell"><span class="ci r">✕</span>Pipeline only as good as your logging</div>
+            <div class="compare-cell"><span class="ci g">✓</span>AI fills in the context. You just sell</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── HOW IT WORKS ──────────────────────────────────────── -->
+<div class="sec" id="how-it-works">
+  <div class="sec-inner">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:44px;flex-wrap:wrap;gap:12px">
+      <h2 style="font-family:var(--serif);font-size:clamp(28px,3vw,40px);font-weight:300">Three steps. That's it.</h2>
+      <span class="label">No learning curve</span>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <span class="label" style="display:block;margin-bottom:14px">Forward</span>
+        <h3 class="step-title">Send a conversation to your bot</h3>
+        <p class="step-body">Copy a WhatsApp chat, record a voice note after a call, or send a screenshot. Forward it to your Rethink CRM bot on Telegram. Any format works.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <span class="label" style="display:block;margin-bottom:14px">Extract</span>
+        <h3 class="step-title">AI extracts full deal context</h3>
+        <p class="step-body">Claude reads the conversation and pulls out contact name, company, deal stage, budget signal, next action, and sentiment. Automatically. In seconds.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <span class="label" style="display:block;margin-bottom:14px">Update</span>
+        <h3 class="step-title">Pipeline updates itself</h3>
+        <p class="step-body">Your dashboard reflects the deal instantly. No forms. No pipeline to update manually. The conversation is the record. You just sell.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── FEATURES ──────────────────────────────────────────── -->
+<div class="sec">
+  <div class="sec-inner">
+    <div style="margin-bottom:44px">
+      <h2 style="font-family:var(--serif);font-size:clamp(28px,3vw,42px);font-weight:300;margin-bottom:8px">Changes behavior,<br /><em style="font-style:italic;color:var(--accent)">not just workflow.</em></h2>
+      <span class="label">Built for how founders actually work</span>
+    </div>
+    <div class="features">
+      <div class="feature">
+        <div class="feat-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--accent)">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+          </svg>
+        </div>
+        <h3 class="feat-title">Never miss a follow-up</h3>
+        <p class="feat-body">The bot tracks inactivity per deal stage. When a deal goes cold, you get a nudge — with full context on what was last discussed.</p>
+        <div class="feat-code">"Arjun @ TechCorp hasn't moved<br/>in 3 days. Last: Proposal Sent."</div>
+      </div>
+      <div class="feature">
+        <div class="feat-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--accent)">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+        </div>
+        <h3 class="feat-title">Pre-call context in seconds</h3>
+        <p class="feat-body">Before any call, ask for context in Telegram and instantly see: last discussion, stage, budget signal, and suggested talking points.</p>
+        <div class="feat-code">/context Priya<br/>"Razorpay · 4d · ₹8L · Ask Q2 timeline."</div>
+      </div>
+      <div class="feature">
+        <div class="feat-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--accent)">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+        </div>
+        <h3 class="feat-title">Ask your pipeline anything</h3>
+        <p class="feat-body">No spreadsheets. No dashboard digging. Ask in plain language and AI answers from your actual deal data, instantly.</p>
+        <div class="feat-code">/ask who should I follow up today?<br/>/ask what's my pipeline value this month?</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── DASHBOARD PREVIEW ──────────────────────────────────── -->
+<div class="sec">
+  <div class="sec-inner">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:36px;gap:24px;flex-wrap:wrap">
+      <div>
+        <h2 style="font-family:var(--serif);font-size:clamp(24px,3vw,36px);font-weight:300;margin-bottom:10px">The bot does the work.<br /><em style="font-style:italic;color:var(--accent)">The dashboard shows the picture.</em></h2>
+        <p style="font-size:0.875rem;color:var(--text-2);max-width:440px;line-height:1.75">Your primary interface is Telegram. The dashboard exists purely for visibility — pipeline, deal heat scores, and follow-up queue, updated automatically.</p>
+      </div>
+      <span class="label" style="flex-shrink:0">What it looks like</span>
+    </div>
+
+    <div class="db-wrap">
+      <div class="db-chrome">
+        <div class="db-dots">
+          <div class="db-dot" style="background:rgba(239,68,68,0.4)"></div>
+          <div class="db-dot" style="background:rgba(234,179,8,0.4)"></div>
+          <div class="db-dot" style="background:rgba(74,222,128,0.4)"></div>
+        </div>
+        <div class="db-url">app.rethinkcrm.com/dashboard</div>
+      </div>
+      <div class="db-body">
+        <div class="db-sidebar">
+          <div class="db-slbl">Rethink CRM</div>
+          <div class="db-nav active">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            Dashboard
+          </div>
+          <div class="db-nav">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7"/></svg>
+            Pipeline
+          </div>
+          <div class="db-nav">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg>
+            Contacts
+          </div>
+          <div class="db-nav">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5"/></svg>
+            Follow-ups
+          </div>
+        </div>
+        <div class="db-main">
+          <div class="db-stats">
+            <div class="db-stat">
+              <div class="db-stat-num" style="color:var(--text)">6</div>
+              <div class="db-stat-lbl">Active</div>
+            </div>
+            <div class="db-stat">
+              <div class="db-stat-num" style="color:#4ADE80">1</div>
+              <div class="db-stat-lbl">Won</div>
+            </div>
+            <div class="db-stat">
+              <div class="db-stat-num" style="color:var(--accent)">3</div>
+              <div class="db-stat-lbl">Follow-ups</div>
+            </div>
+            <div class="db-stat">
+              <div class="db-stat-num" style="color:var(--text)">72</div>
+              <div class="db-stat-lbl">Avg Heat</div>
+            </div>
+          </div>
+          <div class="db-pipe">
+            <div class="db-col">
+              <div class="db-col-h">Lead · 1</div>
+              <div class="db-card">
+                <span class="db-badge db-cold">Cold</span>
+                <div class="db-card-name">Sneha Patel</div>
+                <div class="db-card-co">Zepto</div>
+              </div>
+            </div>
+            <div class="db-col">
+              <div class="db-col-h">Eval · 2</div>
+              <div class="db-card">
+                <span class="db-badge db-warm">Warm</span>
+                <div class="db-card-name">Rahul Gupta</div>
+                <div class="db-card-co">Swiggy</div>
+              </div>
+              <div class="db-card">
+                <span class="db-badge db-hot">Hot</span>
+                <div class="db-card-name">Ananya K.</div>
+                <div class="db-card-co">Groww</div>
+              </div>
+            </div>
+            <div class="db-col">
+              <div class="db-col-h">Proposal · 2</div>
+              <div class="db-card">
+                <span class="db-badge db-warm">Warm</span>
+                <div class="db-card-name">Priya Sharma</div>
+                <div class="db-card-co">Razorpay</div>
+              </div>
+              <div class="db-card">
+                <span class="db-badge db-hot">Hot</span>
+                <div class="db-card-name">Nisha Joshi</div>
+                <div class="db-card-co">Dukaan</div>
+              </div>
+            </div>
+            <div class="db-col">
+              <div class="db-col-h">Negot. · 1</div>
+              <div class="db-card">
+                <span class="db-badge db-hot">Hot</span>
+                <div class="db-card-name">Arjun Mehta</div>
+                <div class="db-card-co">TechCorp</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── TESTIMONIALS ──────────────────────────────────────── -->
+<div class="sec">
+  <div class="sec-inner">
+    <div style="margin-bottom:52px">
+      <h2 style="font-family:var(--serif);font-size:clamp(24px,3vw,38px);font-weight:300;margin-bottom:8px">The CRM you'll <em style="font-style:italic;color:var(--accent)">actually</em> use.</h2>
+      <span class="label">From founders like you</span>
+    </div>
+    <div class="testi-grid">
+      <div class="testi">
+        <p class="testi-q">"I tried Pipedrive, HubSpot, even a Notion template. All failed because I never logged anything. Rethink CRM works because I don't have to."</p>
+        <div class="testi-who">
+          <div class="testi-av">RV</div>
+          <div>
+            <div class="testi-name">Rohit Verma</div>
+            <div class="testi-role">Founder, B2B SaaS · Delhi</div>
+          </div>
+        </div>
+      </div>
+      <div class="testi">
+        <p class="testi-q">"I send a voice note after every call. The bot transcribes it, extracts the deal, and my pipeline is updated before I sit down at my desk."</p>
+        <div class="testi-who">
+          <div class="testi-av">AK</div>
+          <div>
+            <div class="testi-name">Anjali Kapoor</div>
+            <div class="testi-role">Co-founder, Fintech · Bangalore</div>
+          </div>
+        </div>
+      </div>
+      <div class="testi">
+        <p class="testi-q">"The /context command before a call is a game-changer. Everything I discussed 3 weeks ago, their budget, what I promised — all of it, instantly."</p>
+        <div class="testi-who">
+          <div class="testi-av">SM</div>
+          <div>
+            <div class="testi-name">Sameer Mehta</div>
+            <div class="testi-role">Founder, D2C · Mumbai</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── CTA ───────────────────────────────────────────────── -->
+<div class="cta-sec">
+  <h2 class="cta-h2">
+    Start your first deal<br />
+    in <em>30 seconds.</em>
+  </h2>
+  <p class="cta-sub">No setup. No forms to configure. No pipeline to build. Just forward your next WhatsApp conversation.</p>
+  <button class="btn-primary" onclick="openModal()" style="font-size:0.82rem;padding:13px 32px">START FREE →</button>
+  <p class="cta-note">Free · No credit card required</p>
+</div>
+
+<!-- ── FOOTER ────────────────────────────────────────────── -->
+<footer>
+  <div class="foot-brand">
+    <strong>RETHINK CRM</strong> · Zero-input deal tracking for Indian B2B founders
+  </div>
+  <div class="foot-links">
+    <a href="https://argaur.github.io/founder-crm-landing/dashboard/" target="_blank" rel="noopener noreferrer" class="foot-link">Dashboard</a>
+    <a href="https://github.com/argaur/founder-crm-landing" target="_blank" rel="noopener noreferrer" class="foot-link">GitHub</a>
+    <a href="https://t.me/RethinkCRMbot" target="_blank" rel="noopener noreferrer" class="foot-link">Open Bot</a>
+  </div>
+</footer>
+
+<!-- ── MODAL ─────────────────────────────────────────────── -->
+<div id="signup-modal" onclick="handleModalBg(event)">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <h3 class="modal-title">Get started with Rethink CRM</h3>
+    <p class="modal-sub">Your personal Telegram bot link — in seconds.</p>
+    <form id="signup-form" novalidate>
+      <input type="text"  id="field-name"    class="modal-field" placeholder="First Name" required />
+      <input type="email" id="field-email"   class="modal-field" placeholder="Email"      required />
+      <input type="text"  id="field-company" class="modal-field" placeholder="Company"    required />
+      <button type="submit" id="signup-btn" class="modal-btn">
+        <span id="btn-text">GET MY BOT LINK</span>
+        <svg id="btn-spinner" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display:none;animation:spin 0.75s linear infinite">
+          <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+        </svg>
+      </button>
+    </form>
+    <div id="signup-error" class="modal-error"></div>
+    <div id="signup-success" class="modal-success">
+      <div class="modal-success-box">
+        <div class="ms-title">✓ YOU'RE ALL SET</div>
+        <div class="ms-body">Your bot is ready. The dashboard will show you how to send your first conversation — takes 30 seconds.</div>
+      </div>
+      <a id="dashboard-link" href="https://argaur.github.io/founder-crm-landing/dashboard/" class="modal-dash-btn">
+        CONTINUE TO DASHBOARD →
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ── SCRIPTS ───────────────────────────────────────────── -->
+<script>
+  const RAILWAY_URL = "https://web-production-21776.up.railway.app";
+
+  function openModal() {
+    document.getElementById('signup-modal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeModal() {
+    document.getElementById('signup-modal').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  function handleModalBg(e) {
+    if (e.target === document.getElementById('signup-modal')) closeModal();
+  }
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+  const form         = document.getElementById('signup-form');
+  const btn          = document.getElementById('signup-btn');
+  const btnText      = document.getElementById('btn-text');
+  const spinner      = document.getElementById('btn-spinner');
+  const successDiv   = document.getElementById('signup-success');
+  const errorDiv     = document.getElementById('signup-error');
+  const dashLink     = document.getElementById('dashboard-link');
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const firstName = document.getElementById('field-name').value.trim();
+    const email     = document.getElementById('field-email').value.trim();
+    const company   = document.getElementById('field-company').value.trim();
+
+    if (!firstName || !email || !company) {
+      errorDiv.textContent = 'Please fill in all fields.';
+      errorDiv.style.display = 'block';
+      return;
     }
-    function closeModal() {
-      document.getElementById('signup-modal').classList.add('hidden');
-      document.body.style.overflow = '';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errorDiv.textContent = 'Please enter a valid email address.';
+      errorDiv.style.display = 'block';
+      return;
     }
 
-    document.getElementById('signup-modal').addEventListener('click', function(e) {
-      if (e.target === this) closeModal();
-    });
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') closeModal();
-    });
+    errorDiv.style.display = 'none';
+    successDiv.style.display = 'none';
+    btn.disabled = true;
+    btnText.textContent = 'SETTING UP YOUR BOT...';
+    spinner.style.display = 'block';
 
-    const form           = document.getElementById('signup-form');
-    const btn            = document.getElementById('signup-btn');
-    const btnText        = document.getElementById('btn-text');
-    const spinner        = document.getElementById('btn-spinner');
-    const successDiv     = document.getElementById('signup-success');
-    const errorDiv       = document.getElementById('signup-error');
-    const dashboardLink  = document.getElementById('dashboard-link');
-
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const firstName = document.getElementById('field-name').value.trim();
-      const email     = document.getElementById('field-email').value.trim();
-      const company   = document.getElementById('field-company').value.trim();
-
-      if (!firstName || !email || !company) {
-        errorDiv.textContent = 'Please fill in all fields.';
-        errorDiv.classList.remove('hidden');
-        return;
-      }
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        errorDiv.textContent = 'Please enter a valid email address.';
-        errorDiv.classList.remove('hidden');
-        return;
-      }
-
-      errorDiv.classList.add('hidden');
-      successDiv.classList.add('hidden');
-      btn.disabled = true;
-      btnText.textContent = 'Setting up your bot...';
-      spinner.classList.remove('hidden');
-
-      try {
-        const res = await fetch(`${RAILWAY_URL}/register`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ first_name: firstName, email, company })
-        });
-        if (!res.ok) throw new Error(`${res.status}`);
-        const data = await res.json();
-
-        form.classList.add('hidden');
-        dashboardLink.href = `https://argaur.github.io/founder-crm-landing/dashboard/?uid=${data.user_id}`;
-        successDiv.classList.remove('hidden');
-      } catch (err) {
-        errorDiv.textContent = 'Something went wrong. Please try again.';
-        errorDiv.classList.remove('hidden');
-        btn.disabled = false;
-        btnText.textContent = 'Get My Bot Link';
-        spinner.classList.add('hidden');
-      }
-    });
-  </script>
+    try {
+      const res = await fetch(`${RAILWAY_URL}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ first_name: firstName, email, company })
+      });
+      if (!res.ok) throw new Error(`${res.status}`);
+      const data = await res.json();
+      form.style.display = 'none';
+      dashLink.href = `https://argaur.github.io/founder-crm-landing/dashboard/?uid=${data.user_id}`;
+      successDiv.style.display = 'block';
+    } catch {
+      errorDiv.textContent = 'Something went wrong. Please try again.';
+      errorDiv.style.display = 'block';
+      btn.disabled = false;
+      btnText.textContent = 'GET MY BOT LINK';
+      spinner.style.display = 'none';
+    }
+  });
+</script>
 
 </body>
 </html>
